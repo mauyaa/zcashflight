@@ -23,7 +23,8 @@ export type Progress =
 
 export interface RunOptions { scenario?: string; onProgress?: (p: Progress) => void; signal?: AbortSignal }
 
-const REGISTER = new URL(existsSync(new URL('../capture/register.ts', import.meta.url)) ? '../capture/register.ts' : '../capture/register.js', import.meta.url).href;
+// In a checkout this is register.ts; scripts/build.ts rewrites every `new URL('….ts')` to .js for dist/.
+const REGISTER = new URL('../capture/register.ts', import.meta.url).href;
 
 export async function runPolicy(policy: Policy, opts: RunOptions = {}): Promise<Run> {
   const emit = opts.onProgress ?? (() => {});

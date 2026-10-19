@@ -6,6 +6,7 @@ import { classifyToken, type Pool } from '../zcash/identifiers.ts';
 import { maskHit, maskString } from '../engine/mask.ts';
 import type { CaptureEvent, Location, RpcCall } from '../engine/types.ts';
 import { isIP } from 'node:net';
+import { realpathSync } from 'node:fs';
 
 const SENSITIVE_HEADERS = /^(authorization|cookie|x-api-key|proxy-authorization)$/i;
 const MAX_LINE = 400;
@@ -156,11 +157,19 @@ export function parseRpc(body: string): RpcCall | undefined {
   return call;
 }
 
+const realCache = new Map<string, string>();
+function real(p: string): string {
+  let v = realCache.get(p);
+  if (v === undefined) { try { v = realpathSync.native(p); } catch { v = p; } realCache.set(p, v); }
+  return v;
+}
+
 /** Where in the app's own code did this happen? Project frames only (no node_modules, no ZcashFlight), innermost first. */
 export function locate(stack: string | undefined, root: string, skip: RegExp, max = 5): Location[] {
   if (!stack) return [];
   const norm = (p: string) => p.replace(/\\/g, '/');
-  const r = norm(root).replace(/\/$/, '') + '/';
+  // macOS temp folders are symlinks (/var -> /private/var) and stack frames carry the real path, so accept both spellings
+  const roots = [...new Set([root, real(root)].map(p => norm(p).replace(/\/$/, '') + '/'))];
   const out: Location[] = [];
   for (const line of stack.split('\n').slice(1)) {
     // file:///tmp/app/x.ts (POSIX) and file:///C:/app/x.ts (Windows): keep the path's own leading slash
@@ -168,7 +177,8 @@ export function locate(stack: string | undefined, root: string, skip: RegExp, ma
     if (!m) continue;
     let file = norm(decodeURIComponent(m[2]));
     if (/^\/[A-Za-z]:\//.test(file)) file = file.slice(1);
-    if (!file.toLowerCase().startsWith(r.toLowerCase()) || /node_modules|^node:/.test(file) || skip.test(file)) continue;
+    const r = roots.find(x => file.toLowerCase().startsWith(x.toLowerCase()));
+    if (!r || /node_modules|^node:/.test(file) || skip.test(file)) continue;
     const fn = m[1]?.replace(/^async /, '').replace(/^Object\./, '');
     out.push({ file: file.slice(r.length), line: +m[3], col: +m[4], ...(fn && fn !== '<anonymous>' ? { fn } : {}) });
     if (out.length >= max) break;

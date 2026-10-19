@@ -12,6 +12,8 @@
 - Keep keys and seeds protected in log policies. Failed HTTP expectations and empty scenario selections cannot pass as clean runs; incomplete comparisons close no findings and exit with code 2.
 - Reject malformed dashboard tokens and URL escapes without crashing, and enforce the static directory boundary.
 - Preserve POSIX leading slashes in stack-frame locations.
+- Code locations resolve when the project path is a symlink (macOS `/var` → `/private/var`).
+- The installed package (`dist/`) loads its collector correctly; previously apps failed to start when run from a build.
 - Dashboard: "Run on <your app>" runs the open project (it ran the ZecShop sample); a reload keeps the last saved run; singular wording for one leak, request or fix.
 - `zcashflight ui` explains a busy port instead of crashing; `init` names the app after its package and links the policy reference.
 

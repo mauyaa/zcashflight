@@ -9,7 +9,7 @@ import { parseYaml } from '../src/engine/yaml.ts';
 import { loadPolicy, writeProtect } from '../src/engine/policy.ts';
 import { parseRpc, locate } from '../src/capture/inspect.ts';
 import { CASES, runCase } from './cases.ts';
-import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, symlinkSync, rmSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -66,6 +66,17 @@ test('code locations resolve on POSIX and Windows stack frames', () => {
   assert.equal(locate(win, 'C:\\shop', skip)[0]?.file, 'lib/analytics.ts');
   const plain = 'Error\n    at track (/tmp/shop/lib/a.ts:1:1)';
   assert.equal(locate(plain, '/tmp/shop', skip)[0]?.file, 'lib/a.ts');
+});
+
+test('code locations resolve when the project root is reached through a symlink (macOS /var -> /private/var)', () => {
+  const realDir = mkdtempSync(join(tmpdir(), 'zf-real-'));
+  const link = join(tmpdir(), 'zf-link-' + process.pid);
+  rmSync(link, { force: true, recursive: true });
+  symlinkSync(realDir, link, 'junction');
+  const real = realpathSync.native(realDir).replace(/\\/g, '/');
+  const stack = `Error\n    at track (file://${real.startsWith('/') ? '' : '/'}${real}/lib/a.ts:3:1)`;
+  assert.equal(locate(stack, link, /zcashflight[\\/]src/)[0]?.file, 'lib/a.ts');
+  rmSync(link, { force: true, recursive: true });
 });
 
 test('wallet RPC parsing knows which pools a send touches', () => {
