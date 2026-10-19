@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "ZcashFlight",
+          "informationUri": "https://github.com/mauyaa/zcashflight",
+          "rules": [
+            {
+              "id": "ZF-A",
+              "name": "Sensitive data in requests",
+              "helpUri": "https://github.com/mauyaa/zcashflight/blob/main/docs/reference/rules.md#rule-a"
+            },
+            {
+              "id": "ZF-B",
+              "name": "Sensitive data in logs",
+              "helpUri": "https://github.com/mauyaa/zcashflight/blob/main/docs/reference/rules.md#rule-b"
+            },
+            {
+              "id": "ZF-C",
+              "name": "Transaction type and public exposure",
+              "helpUri": "https://github.com/mauyaa/zcashflight/blob/main/docs/reference/rules.md#rule-c"
+            },
+            {
+              "id": "ZF-D",
+              "name": "Third-party data flows",
+              "helpUri": "https://github.com/mauyaa/zcashflight/blob/main/docs/reference/rules.md#rule-d"
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "ZF-A",
+          "level": "error",
+          "message": {
+            "text": "Address and amount sent to analytics (analytics.example.com). Send event names, not payment data."
+          },
+          "partialFingerprints": {
+            "zcashflight": "8b45d83f7a"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "server.ts"
+                },
+                "region": {
+                  "startLine": 56,
+                  "startColumn": 5
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "ZF-A",
+          "level": "error",
+          "message": {
+            "text": "Memo sent to error monitoring (errors.example.io). Scrub error reports before they leave the app."
+          },
+          "partialFingerprints": {
+            "zcashflight": "7fc2230a05"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "server.ts"
+                },
+                "region": {
+                  "startLine": 88,
+                  "startColumn": 7
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "ZF-B",
+          "level": "error",
+          "message": {
+            "text": "Transaction ID written to a log (logs/server.log). Log what happened, not who or how much."
+          },
+          "partialFingerprints": {
+            "zcashflight": "c84f713d32"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "server/broadcast.ts"
+                },
+                "region": {
+                  "startLine": 9,
+                  "startColumn": 14
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "ZF-D",
+          "level": "warning",
+          "message": {
+            "text": "Checkout activity revealed to a price API (api.coingecko.com). Every third-party call reveals that something happened, and when."
+          },
+          "partialFingerprints": {
+            "zcashflight": "c89bf9c1fb"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lib/prices.ts"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 21
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "ZF-C",
+          "level": "warning",
+          "message": {
+            "text": "Payment sent to a transparent address (127.0.0.1:18232). Keep funds in the shielded pool end to end."
+          },
+          "partialFingerprints": {
+            "zcashflight": "2f1ad9cbf6"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lib/refund.ts"
+                },
+                "region": {
+                  "startLine": 9,
+                  "startColumn": 17
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "zecshop",
+  "private": true,
+  "description": "Sample Zcash payment app with seeded privacy leaks, used to demonstrate and validate ZcashFlight.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.ts",
+    "scan": "node ../../bin/zcashflight.js run",
+    "fix": "node scripts/fixes.ts apply",
+    "reset": "node scripts/fixes.ts reset"
+  }
+}

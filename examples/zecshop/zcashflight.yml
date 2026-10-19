@@ -1,0 +1,87 @@
+# ZcashFlight policy for ZecShop, the sample payment app.
+# Run it:   zcashflight run        (from this folder)
+# Change what counts as private in protect:, and who may receive it in destinations:.
+
+version: 1
+network: testnet
+
+app:
+  name: ZecShop
+  start: node server.ts
+  url: http://127.0.0.1:4600
+  ready: /health
+  env:
+    PORT: 4600
+    WALLET_RPC: http://127.0.0.1:18232
+
+# What must never leave the app. Viewing keys, spending keys and seed phrases are always protected.
+protect:
+  - addresses
+  - amounts
+  - memos
+  - transaction IDs
+  - viewing keys
+  - spending keys
+  - seed phrases
+
+# Approved destinations, and which protected data each one genuinely needs.
+# Any host not listed here is reported as an unapproved third-party data flow.
+destinations:
+  - host: 127.0.0.1:18232
+    purpose: Wallet RPC (zallet, testnet). Builds and broadcasts transactions.
+    allow: [addresses, amounts, memos, transaction IDs]
+  - host: analytics.example.com
+    purpose: Product analytics. Event names only.
+    allow: []
+  - host: errors.example.io
+    purpose: Error monitoring. Scrubbed error reports only.
+    allow: []
+
+logs:
+  - logs/server.log
+
+transactions:
+  shielded_only: true   # flag any wallet send that touches the transparent pool
+
+# Requests to non-local hosts are answered locally during tests and never reach the network.
+sinkhole: true
+
+scenarios:
+  - name: checkout
+    description: A customer buys a hoodie, pays, and the shop sweeps funds to cold storage.
+    steps:
+      - request: POST /api/checkout
+        json:
+          name: Amina
+          items: [{sku: hoodie, qty: 1}, {sku: sticker-pack, qty: 1}]
+          refund_address: utest1vnnewz8teentaw5l4z4925nun89mlq32zwvu9hel4ym5zcqx8u4xnrpdu2349jn0w7ydwpl34lnfp7092fzlu3vjm5yp7fj8rctyhknk9rw0ssqc2rez4n62slnguv0quwgthu0t65kd844pug7y666c4vqj8p6u6dh2plmkck2sdkw2s8
+        save: {order: order_id}
+      - request: POST /api/orders/{{order}}/paid
+
+  - name: refunds
+    description: A returning customer with a legacy transparent address checks out, then the order fails.
+    steps:
+      - request: POST /api/checkout
+        json:
+          name: Amina
+          items: [{sku: sticker-pack, qty: 2}]
+          refund_address: utest1vnnewz8teentaw5l4z4925nun89mlq32zwvu9hel4ym5zcqx8u4xnrpdu2349jn0w7ydwpl34lnfp7092fzlu3vjm5yp7fj8rctyhknk9rw0ssqc2rez4n62slnguv0quwgthu0t65kd844pug7y666c4vqj8p6u6dh2plmkck2sdkw2s8
+          legacy_refund_address: tmUSebGk2Dd7sxQUKFauzR6V6zc51AgWzhs
+        save: {order: order_id}
+      - request: POST /api/orders/{{order}}/fail
+
+  - name: errors
+    description: The wallet times out while a customer checks their order status.
+    steps:
+      - request: POST /api/checkout
+        json:
+          name: Amina
+          items: [{sku: hoodie, qty: 1}]
+        save: {order: order_id}
+      - request: GET /api/orders/{{order}}?simulate=timeout
+        expect: 504
+
+# Said in every report, so a clean run is never mistaken for a guarantee.
+not_tested:
+  - Browser and mobile clients
+  - Network metadata such as IP address and request timing at the transport layer

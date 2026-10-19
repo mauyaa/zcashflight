@@ -1,0 +1,31 @@
+name: ZcashFlight privacy tests
+description: Run your Zcash app's scenarios and fail the pull request when protected data leaks into requests or logs.
+author: ZcashFlight
+branding:
+  icon: shield
+  color: green
+
+inputs:
+  dir:
+    description: Folder containing zcashflight.yml
+    default: .
+  fail-on:
+    description: Lowest severity that fails the check (low, medium, high, critical)
+    default: medium
+  sarif:
+    description: Where to write SARIF for GitHub code scanning (empty to skip)
+    default: zcashflight.sarif
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+    - name: Run ZcashFlight
+      shell: bash
+      run: |
+        node "${{ github.action_path }}/bin/zcashflight.js" run --ci \
+          --dir "${{ inputs.dir }}" \
+          --fail-on "${{ inputs.fail-on }}" \
+          ${{ inputs.sarif && format('--sarif "{0}"', inputs.sarif) || '' }}

@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "n": 2,
+  "id": "92a6e44ff5db",
+  "startedAt": "2026-10-19T00:58:36.391Z",
+  "finishedAt": "2026-10-19T00:58:37.856Z",
+  "app": "ZecShop",
+  "network": "testnet",
+  "policyHash": "d434f2a9de5d",
+  "protect": [
+    "address",
+    "amount",
+    "memo",
+    "txid",
+    "viewing-key",
+    "spending-key",
+    "seed-phrase"
+  ],
+  "status": "complete",
+  "scenarios": [
+    {
+      "name": "checkout",
+      "description": "A customer buys a hoodie, pays, and the shop sweeps funds to cold storage.",
+      "ok": true,
+      "steps": [
+        {
+          "request": "POST /api/checkout",
+          "status": 201,
+          "ok": true,
+          "ms": 59
+        },
+        {
+          "request": "POST /api/orders/:order/paid",
+          "status": 200,
+          "ok": true,
+          "ms": 28
+        }
+      ],
+      "window": [
+        1792371516891,
+        1792371516978
+      ]
+    },
+    {
+      "name": "refunds",
+      "description": "A returning customer with a legacy transparent address checks out, then the order fails.",
+      "ok": true,
+      "steps": [
+        {
+          "request": "POST /api/checkout",
+          "status": 201,
+          "ok": true,
+          "ms": 33
+        },
+        {
+          "request": "POST /api/orders/:order/fail",
+          "status": 200,
+          "ok": true,
+          "ms": 44
+        }
+      ],
+      "window": [
+        1792371516978,
+        1792371517055
+      ]
+    },
+    {
+      "name": "errors",
+      "description": "The wallet times out while a customer checks their order status.",
+      "ok": true,
+      "steps": [
+        {
+          "request": "POST /api/checkout",
+          "status": 201,
+          "ok": true,
+          "ms": 33
+        },
+        {
+          "request": "GET /api/orders/:order?simulate=timeout",
+          "status": 504,
+          "ok": true,
+          "ms": 5
+        }
+      ],
+      "window": [
+        1792371517055,
+        1792371517093
+      ]
+    }
+  ],
+  "stats": {
+    "requests": 11,
+    "external": 4,
+    "sinkholed": 4,
+    "logs": 5,
+    "hosts": [
+      "127.0.0.1:18232",
+      "analytics.example.com",
+      "errors.example.io"
+    ]
+  },
+  "findings": [],
+  "coverage": {
+    "tested": [
+      "checkout",
+      "refunds",
+      "errors",
+      "Outbound fetch and http(s) requests from the app process",
+      "Console output and logs/server.log",
+      "Wallet RPC sends (z_sendmany, sendtoaddress, sendmany)"
+    ],
+    "notTested": [
+      "Browser and mobile clients",
+      "Network metadata such as IP address and request timing at the transport layer"
+    ]
+  },
+  "fingerprint": "9aa9 1e44"
+}

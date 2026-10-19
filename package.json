@@ -1,0 +1,58 @@
+{
+  "name": "zcashflight",
+  "version": "0.1.0",
+  "description": "Privacy tests for Zcash apps: catch exposed addresses, amounts, memos and txids in requests and logs, with masked evidence, fixes, and regression checks.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "zcashflight": "bin/zcashflight.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "ui",
+    "!ui/ui-audit.js",
+    "brand/walker/figure.js",
+    "action.yml",
+    "docs",
+    "README.md",
+    "PRIVACY.md",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "engines": {
+    "node": ">=22.18"
+  },
+  "keywords": [
+    "zcash",
+    "privacy",
+    "testing",
+    "security",
+    "zec",
+    "shielded",
+    "wallet",
+    "qa"
+  ],
+  "scripts": {
+    "test": "node --test \"test/*.test.ts\"",
+    "validate": "node test/validate.ts",
+    "demo": "node scripts/demo.ts",
+    "ui": "node bin/zcashflight.js ui --dir examples/zecshop",
+    "build": "node scripts/build.ts",
+    "record": "node scripts/record.ts",
+    "prepack": "node scripts/build.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "homepage": "https://zcashflight.vercel.app",
+  "bugs": "https://github.com/mauyaa/zcashflight/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mauyaa/zcashflight.git"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}

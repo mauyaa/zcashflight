@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="ZcashFlight: Zcash-specific privacy checks for the parts of your app beyond the chain.">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>ZcashFlight — Privacy, verified.</title>
+<meta name="theme-color" content="#111c27">
+<link rel="icon" href="brand/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css?v=20261019m">
+<script src="config.js?v=20261019m"></script>
+<!--ZF_LIVE-->
+</head>
+<body>
+<button class="word" data-go="0" aria-label="ZcashFlight home"><img src="brand/wordmark-ivory.svg?v=20261019m" alt="ZcashFlight" width="231" height="16"></button>
+<nav class="nav" aria-label="Project"><a class="docs" id="docsLink" href="#" target="_blank" rel="noreferrer noopener">Docs <span aria-hidden="true">↗</span></a><a id="srcLink" href="#" target="_blank" rel="noreferrer noopener">Source <span aria-hidden="true">↗</span></a></nav>
+<div class="stage" id="stage">
+  <div class="world" id="world">
+    <section class="st" data-name="start" data-label="The promise"><div class="text" id="t0"></div><div class="art"></div></section>
+    <section class="st" data-name="app" data-label="Your app"><div class="text" id="t1"></div><div class="art"></div></section>
+    <section class="st" data-name="listen" data-label="Listening"><div class="text" id="t2"></div><div class="art"></div></section>
+    <section class="st" data-name="leaks" data-label="What leaked"><div class="text" id="t3"></div><div class="art"></div></section>
+    <section class="st" data-name="clean" data-label="Nothing leaks"><div class="text" id="t4"></div><div class="art"></div></section>
+    <section class="st" data-name="home" data-label="Every day"><div class="text" id="t5"></div><div class="art"></div></section>
+    <svg id="svg" aria-hidden="true"></svg>
+  </div>
+</div>
+
+<footer class="footer" aria-label="Journey controls">
+<nav class="map" aria-label="Journey steps"><svg id="mapsvg" width="150" height="32" role="img" aria-label="Six steps"></svg><span class="name" id="mapname"></span></nav>
+<div class="corner"><div class="states" id="scenes" hidden><button class="link q" id="statesBtn" aria-expanded="false">Scenes</button><div class="pop" id="pop" hidden></div></div><div class="states"><button class="seal" id="sealBtn" aria-expanded="false"><i></i><span id="sealLabel">Demo only</span></button><div class="sealpop" id="sealpop" hidden></div></div></div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script src="figure.js?v=20261019m"></script>
+<script src="app.js?v=20261019m"></script>
+</body>
+</html>

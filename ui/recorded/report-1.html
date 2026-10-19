@@ -1,0 +1,97 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZcashFlight report · ZecShop · run 1</title>
+<style>
+/* Tokens: concept palette (documented exception) on screen; the design system's Product Light tokens for light mode and print. */
+:root{--color-bg:#111c27;--color-surface:rgba(238,241,234,.04);--color-surface-raised:rgba(238,241,234,.07);--color-border:rgba(238,241,234,.12);--color-border-strong:rgba(238,241,234,.4);
+--color-text-primary:#eef1ea;--color-text-secondary:rgba(238,241,234,.7);--color-text-muted:rgba(238,241,234,.55);--color-accent:#dcf5a6;--color-destructive-text:#ff7d64;--color-track:#4a7a77;color-scheme:dark}
+@media (prefers-color-scheme:light){:root{--color-bg:#ffffff;--color-surface:#f8fafc;--color-surface-raised:#f1f5f9;--color-border:#e2e8f0;--color-border-strong:#94a3b8;
+--color-text-primary:#1e293b;--color-text-secondary:rgba(30,41,59,.7);--color-text-muted:rgba(30,41,59,.62);--color-accent:#0055ff;--color-destructive-text:#b13600;--color-track:#94a3b8;color-scheme:light}}
+@media print{:root{--color-bg:#ffffff;--color-surface:#f8fafc;--color-surface-raised:#f1f5f9;--color-border:#e2e8f0;--color-border-strong:#94a3b8;--color-text-primary:#1e293b;--color-text-secondary:rgba(30,41,59,.75);--color-text-muted:rgba(30,41,59,.62);--color-accent:#0055ff;--color-destructive-text:#b13600;--color-track:#94a3b8}.f{break-inside:avoid}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--color-bg);color:var(--color-text-primary);font:16px/1.6 'Instrument Sans',Inter,system-ui,-apple-system,sans-serif;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+main{max-width:900px;margin:0 auto;padding:48px 24px 96px}
+.word{display:block;height:20px;width:auto;color:var(--color-text-primary)}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent);margin:48px 0 8px}
+h1{font-weight:600;font-size:clamp(2rem,5vw,2.75rem);line-height:1.1;letter-spacing:-.025em;margin:0 0 16px;text-wrap:balance}
+h3{font-weight:600;font-size:1.375rem;line-height:1.35;letter-spacing:-.01em;margin:0}
+p{margin:0}
+.meta{color:var(--color-text-secondary);font-size:14px;line-height:1.5;margin:8px 0}
+.lbl{color:var(--color-text-muted);font-size:12px;font-weight:500;margin:16px 0 8px}
+code,pre{font-family:ui-monospace,'JetBrains Mono',SFMono-Regular,Menlo,monospace;font-size:13px;letter-spacing:0}
+pre.ev{background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:12px 16px;white-space:pre-wrap;word-break:break-word;color:var(--color-text-secondary);line-height:1.7;margin:8px 0}
+pre.ev b{color:var(--color-destructive-text);font-weight:500} pre.ev i{color:var(--color-text-muted);font-style:normal}
+.f{border-top:1px solid var(--color-border);padding:32px 0}
+.f header{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.sev{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:100px;font-size:12px;font-weight:500;border:1px solid var(--color-border-strong);color:var(--color-text-secondary);text-transform:capitalize}
+.sev.critical,.sev.high{color:var(--color-destructive-text);border-color:currentColor}
+ul{color:var(--color-text-secondary);padding-left:20px;margin:8px 0}
+li{margin:4px 0}
+a{color:var(--color-accent);text-underline-offset:3px}
+.fix{margin-top:16px}
+.cov{display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1px solid var(--color-border);padding-top:32px;margin-top:8px}
+.cov h4{font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-text-muted);margin:0 0 8px}
+.cov div div{color:var(--color-text-secondary);font-size:14px;margin:4px 0}
+.ok{color:var(--color-accent)} small{color:var(--color-text-muted);font-size:12px;line-height:1.5;display:block;margin-top:32px}
+@media (max-width:640px){.cov{grid-template-columns:1fr}main{padding:32px 16px 64px}}
+</style></head><body><main>
+<svg class="word" viewBox="0 0 22167 1536" role="img" aria-label="ZcashFlight"><path fill="currentColor" fill-rule="evenodd" d="M128 1536V1376L1614 160H192V0H1888V160L394 1376H1920V1536ZM2296.88 788V748Q2296.88 544 2316.88 405.5Q2336.88 267 2385.88 180.0Q2434.88 93 2519.38 47.0Q2603.88 1 2731.88 -15.5Q2859.88 -32 3039.88 -32H3442.88Q3648.88 -32 3790.38 -12.5Q3931.88 7 4018.38 64.5Q4104.88 122 4143.88 233.5Q4182.88 345 4182.88 529H3990.88Q3990.88 384 3964.88 303.5Q3938.88 223 3877.38 187.0Q3815.88 151 3709.88 142.5Q3603.88 134 3442.88 134H3039.88Q2896.88 134 2798.88 142.5Q2700.88 151 2639.38 181.5Q2577.88 212 2545.38 278.0Q2512.88 344 2500.88 458.0Q2488.88 572 2488.88 748V788Q2488.88 958 2500.88 1070.0Q2512.88 1182 2545.38 1249.0Q2577.88 1316 2639.38 1349.0Q2700.88 1382 2798.88 1392.0Q2896.88 1402 3039.88 1402H3442.88Q3603.88 1402 3709.88 1395.0Q3815.88 1388 3877.38 1354.0Q3938.88 1320 3964.88 1240.5Q3990.88 1161 3990.88 1017H4182.88Q4182.88 1201 4143.88 1311.0Q4104.88 1421 4018.38 1476.5Q3931.88 1532 3790.38 1550.0Q3648.88 1568 3442.88 1568H3039.88Q2814.88 1568 2669.88 1537.5Q2524.88 1507 2443.38 1425.0Q2361.88 1343 2329.38 1189.0Q2296.88 1035 2296.88 788ZM4500.76 1536 5396.76 0H5652.76L6548.76 1536H6324.76L6132.76 1184H4916.76L4724.76 1536ZM5012.76 1024H6036.76L5524.76 128ZM8562.64 1092Q8562.64 1003 8548.64 952.0Q8534.64 901 8485.64 876.5Q8436.64 852 8333.64 844.5Q8230.64 837 8051.64 834L7495.64 826Q7289.64 823 7164.64 801.0Q7039.64 779 6975.64 731.5Q6911.64 684 6890.14 604.0Q6868.64 524 6868.64 404Q6868.64 273 6898.14 188.0Q6927.64 103 7005.14 55.0Q7082.64 7 7224.64 -12.5Q7366.64 -32 7591.64 -32H8019.64Q8223.64 -32 8359.64 -19.0Q8495.64 -6 8575.64 41.0Q8655.64 88 8690.14 187.0Q8724.64 286 8724.64 459H8532.64Q8532.64 325 8507.14 256.5Q8481.64 188 8423.14 163.0Q8364.64 138 8265.64 136.0Q8166.64 134 8019.64 134H7601.64Q7422.64 134 7315.14 141.0Q7207.64 148 7152.64 173.0Q7097.64 198 7079.14 253.0Q7060.64 308 7060.64 404Q7060.64 485 7073.64 534.0Q7086.64 583 7132.14 608.5Q7177.64 634 7272.64 643.5Q7367.64 653 7531.64 655L8127.64 663Q8337.64 666 8463.14 687.5Q8588.64 709 8651.14 757.0Q8713.64 805 8734.14 886.5Q8754.64 968 8754.64 1092Q8754.64 1227 8729.14 1318.5Q8703.64 1410 8630.64 1465.0Q8557.64 1520 8419.64 1544.0Q8281.64 1568 8056.64 1568H7588.64Q7383.64 1568 7244.64 1550.0Q7105.64 1532 7023.14 1477.5Q6940.64 1423 6904.64 1315.0Q6868.64 1207 6868.64 1027H7060.64Q7060.64 1168 7083.64 1245.0Q7106.64 1322 7164.14 1355.5Q7221.64 1389 7325.14 1395.5Q7428.64 1402 7588.64 1402H8046.64Q8225.64 1402 8329.64 1390.5Q8433.64 1379 8483.64 1346.5Q8533.64 1314 8548.14 1253.0Q8562.64 1192 8562.64 1092ZM9196.52 1536V0H9388.52V672H10796.52V0H10988.52V1536H10796.52V832H9388.52V1536ZM11499.400000000001 1536V0H12947.400000000001V160H11691.400000000001V672H12890.400000000001V832H11691.400000000001V1536ZM13350.280000000002 1536V0H13542.280000000002V1376H14758.280000000002V1536ZM15137.160000000003 1536V0H15329.160000000003V1536ZM15772.040000000003 788V748Q15772.040000000003 544 15792.040000000003 405.5Q15812.040000000003 267 15861.040000000003 180.0Q15910.040000000003 93 15994.540000000003 47.0Q16079.040000000003 1 16207.040000000003 -15.5Q16335.040000000003 -32 16515.04 -32H16891.04Q17127.04 -32 17274.54 -14.0Q17422.04 4 17501.54 55.0Q17581.04 106 17611.04 203.5Q17641.04 301 17641.04 459H17449.04Q17449.04 340 17428.04 273.5Q17407.04 207 17349.04 177.5Q17291.04 148 17180.54 141.0Q17070.04 134 16891.04 134H16515.04Q16372.040000000003 134 16274.040000000003 142.5Q16176.040000000003 151 16114.540000000003 181.5Q16053.040000000003 212 16020.540000000003 278.0Q15988.040000000003 344 15976.040000000003 458.0Q15964.040000000003 572 15964.040000000003 748V788Q15964.040000000003 958 15976.040000000003 1070.0Q15988.040000000003 1182 16020.540000000003 1249.0Q16053.040000000003 1316 16114.540000000003 1349.0Q16176.040000000003 1382 16274.040000000003 1392.0Q16372.040000000003 1402 16515.04 1402H16958.04Q17123.04 1402 17224.04 1388.5Q17325.04 1375 17377.54 1330.5Q17430.04 1286 17448.04 1194.5Q17466.04 1103 17466.04 947V888H16731.04V728H17658.04V947Q17658.04 1142 17625.04 1264.0Q17592.04 1386 17513.54 1452.5Q17435.04 1519 17299.54 1543.5Q17164.04 1568 16958.04 1568H16515.04Q16290.040000000003 1568 16145.040000000003 1537.5Q16000.040000000003 1507 15918.540000000003 1425.0Q15837.040000000003 1343 15804.540000000003 1189.0Q15772.040000000003 1035 15772.040000000003 788ZM18139.920000000002 1536V0H18331.920000000002V672H19739.920000000002V0H19931.920000000002V1536H19739.920000000002V832H18331.920000000002V1536ZM21112.800000000003 1536V160H20344.800000000003V0H22072.800000000003V160H21304.800000000003V1536Z"/></svg>
+<p class="eyebrow">Privacy report</p>
+<h1 class="">5 privacy leaks found.</h1>
+<p class="meta">ZecShop · run 1 · testnet · 19 Oct 2026, 00:58 UTC · fingerprint <code>2aa8 f30c</code></p>
+<p class="meta">14 requests and 5 log lines inspected on this machine · 7 third-party requests kept off the network · hosts: <code>127.0.0.1:18232</code>, <code>analytics.example.com</code>, <code>api.coingecko.com</code>, <code>errors.example.io</code></p>
+
+
+  <article class="f">
+    <header><h3>Address and amount sent to analytics</h3><span class="sev high">high</span></header>
+    <p class="meta">Rule A · Sensitive data in requests · to <code>analytics.example.com</code> · scenario checkout · 3×</p>
+    <pre class="ev">POST https://analytics.example.com/v1/track
+body.props.recipient: <b>utest1dh…lcr2</b>  <i>unified-address · checksum</i>
+body.props.amount: <b>••••</b>  <i>amount · context</i></pre>
+    
+    <p class="fix"><b>Fix.</b> Send event names, not payment data.</p><ul><li>Drop <code>props.recipient</code>, <code>props.amount</code> from the analytics payload.</li><li>If you need conversion numbers, count them on your server without identifiers.</li><li>Re-run ZcashFlight to confirm the event no longer carries protected fields.</li></ul>
+    <p class="meta">Read: <a href="https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html" rel="noreferrer">Zcash privacy recommendations</a></p>
+    <p class="meta">Reproduce: <code>zcashflight run --scenario checkout</code> → <code>Scenario step: POST /api/checkout</code> → <code>Observed: POST https://analytics.example.com/v1/track</code></p>
+  </article>
+  <article class="f">
+    <header><h3>Memo sent to error monitoring</h3><span class="sev high">high</span></header>
+    <p class="meta">Rule A · Sensitive data in requests · to <code>errors.example.io</code> · scenario errors · 1×</p>
+    <pre class="ev">POST https://errors.example.io/api/42/store/
+body.extra.memo: <b>•••• (26 chars)</b>  <i>memo · context</i></pre>
+    
+    <p class="fix"><b>Fix.</b> Scrub error reports before they leave the app.</p><ul><li>Remove <code>extra.memo</code> from the error context.</li><li>Add a scrubbing hook (e.g. Sentry beforeSend) that strips Zcash identifiers, memos and amounts.</li><li>Attach your own random correlation ID instead, so you can still debug.</li></ul>
+    <p class="meta">Read: <a href="https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html" rel="noreferrer">Zcash privacy recommendations</a></p>
+    <p class="meta">Reproduce: <code>zcashflight run --scenario errors</code> → <code>Scenario step: POST /api/checkout</code> → <code>Observed: POST https://errors.example.io/api/42/store/</code></p>
+  </article>
+  <article class="f">
+    <header><h3>Transaction ID written to a log</h3><span class="sev high">high</span></header>
+    <p class="meta">Rule B · Sensitive data in logs · to <code>logs/server.log</code> · scenario errors · 1×</p>
+    <pre class="ev">2026-10-19T00:58:35.134Z DEBUG broadcast ok txid=b78c…1ab8
+log: <b>b78c…1ab8</b>  <i>txid · context</i></pre>
+    
+    <p class="fix"><b>Fix.</b> Log what happened, not who or how much.</p><ul><li>Stop interpolating <code>log</code> into log lines.</li><li>Log a locally generated correlation ID; keep the txid ↔ ID mapping out of logs.</li><li>Add a logger redaction rule for Zcash identifiers as a second line of defence.</li></ul>
+    <p class="meta">Read: <a href="https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html" rel="noreferrer">Zcash privacy recommendations</a></p>
+    <p class="meta">Reproduce: <code>zcashflight run --scenario errors</code> → <code>Scenario step: POST /api/checkout</code> → <code>Observed in logs/server.log</code></p>
+  </article>
+  <article class="f">
+    <header><h3>Checkout activity revealed to a price API</h3><span class="sev medium">medium</span></header>
+    <p class="meta">Rule D · Third-party data flows · to <code>api.coingecko.com</code> · scenario checkout · 3×</p>
+    <pre class="ev">GET https://api.coingecko.com/api/v3/simple/price?ids=zcash&amp;vs_currencies=usd
+</pre>
+    
+    <p class="fix"><b>Fix.</b> Every third-party call reveals that something happened, and when.</p><ul><li>Move this price API call off the user's path: fetch on a schedule on your server and cache it.</li><li>If the call must stay, add the host to destinations: with a purpose so the exposure is a documented decision.</li></ul>
+    <p class="meta">Read: <a href="https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html" rel="noreferrer">Zcash privacy recommendations</a></p>
+    <p class="meta">Reproduce: <code>zcashflight run --scenario checkout</code> → <code>Scenario step: POST /api/checkout</code> → <code>Observed: GET https://api.coingecko.com/api/v3/simple/price?ids=zcash&amp;vs_currencies=usd</code></p>
+  </article>
+  <article class="f">
+    <header><h3>Payment sent to a transparent address</h3><span class="sev medium">medium</span></header>
+    <p class="meta">Rule C · Transaction type and public exposure · to <code>127.0.0.1:18232</code> · scenario refunds · 1×</p>
+    <pre class="ev">POST http://127.0.0.1:18232/
+body.params[1][0].address: <b>tmUS…Wzhs</b>  <i>transparent-p2pkh · checksum</i></pre>
+    
+    <p class="fix"><b>Fix.</b> Keep funds in the shielded pool end to end.</p><ul><li>Send to the customer's unified (or Sapling/Orchard) address, never a transparent one.</li><li>Pass privacyPolicy &quot;FullPrivacy&quot; to z_sendmany so the wallet refuses revealing transactions.</li><li>Reject transparent refund addresses at input validation.</li></ul>
+    <p class="meta">Read: <a href="https://zcash.readthedocs.io/en/latest/rtd_pages/addresses.html" rel="noreferrer">Addresses and value pools</a> · <a href="https://zips.z.cash/zip-0316" rel="noreferrer">ZIP 316: Unified addresses</a> · <a href="https://zcash.github.io/rpc/z_sendmany.html" rel="noreferrer">z_sendmany privacy policies</a></p>
+    <p class="meta">Reproduce: <code>zcashflight run --scenario refunds</code> → <code>Scenario step: POST /api/checkout</code> → <code>Observed: POST http://127.0.0.1:18232/</code></p>
+  </article>
+<section class="cov"><div><h4>Tested</h4><div>checkout</div><div>refunds</div><div>errors</div><div>Outbound fetch and http(s) requests from the app process</div><div>Console output and logs/server.log</div><div>Wallet RPC sends (z_sendmany, sendtoaddress, sendmany)</div></div><div><h4>Not tested</h4><div>Browser and mobile clients</div><div>Network metadata such as IP address and request timing at the transport layer</div></div></section>
+<p><small>All values above were masked where they were captured; raw payloads were never written to disk. ZcashFlight checks observable application behaviour in these tests. It does not decrypt transactions, deanonymise users, or certify that an app is private in all circumstances.</small></p>
+</main></body></html>

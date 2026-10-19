@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.zcashflight/
+examples/zecshop/logs/
+examples/zecshop/data/
+*.sarif
+.vercel/
+!ui/recorded/*.sarif
+.env
+.env.*
+!.env.example
+*.log
+*.pem
+*.key
+ui/ui-audit.js

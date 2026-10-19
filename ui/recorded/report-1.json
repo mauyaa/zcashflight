@@ -1,0 +1,490 @@
+{
+  "version": 1,
+  "n": 1,
+  "id": "2ba6162ca3c3",
+  "startedAt": "2026-10-19T00:58:34.480Z",
+  "finishedAt": "2026-10-19T00:58:36.165Z",
+  "app": "ZecShop",
+  "network": "testnet",
+  "policyHash": "d434f2a9de5d",
+  "protect": [
+    "address",
+    "amount",
+    "memo",
+    "txid",
+    "viewing-key",
+    "spending-key",
+    "seed-phrase"
+  ],
+  "status": "complete",
+  "scenarios": [
+    {
+      "name": "checkout",
+      "description": "A customer buys a hoodie, pays, and the shop sweeps funds to cold storage.",
+      "ok": true,
+      "steps": [
+        {
+          "request": "POST /api/checkout",
+          "status": 201,
+          "ok": true,
+          "ms": 74
+        },
+        {
+          "request": "POST /api/orders/:order/paid",
+          "status": 200,
+          "ok": true,
+          "ms": 29
+        }
+      ],
+      "window": [
+        1792371515033,
+        1792371515136
+      ]
+    },
+    {
+      "name": "refunds",
+      "description": "A returning customer with a legacy transparent address checks out, then the order fails.",
+      "ok": true,
+      "steps": [
+        {
+          "request": "POST /api/checkout",
+          "status": 201,
+          "ok": true,
+          "ms": 27
+        },
+        {
+          "request": "POST /api/orders/:order/fail",
+          "status": 200,
+          "ok": true,
+          "ms": 41
+        }
+      ],
+      "window": [
+        1792371515137,
+        1792371515205
+      ]
+    },
+    {
+      "name": "errors",
+      "description": "The wallet times out while a customer checks their order status.",
+      "ok": true,
+      "steps": [
+        {
+          "request": "POST /api/checkout",
+          "status": 201,
+          "ok": true,
+          "ms": 18
+        },
+        {
+          "request": "GET /api/orders/:order?simulate=timeout",
+          "status": 504,
+          "ok": true,
+          "ms": 15
+        }
+      ],
+      "window": [
+        1792371515205,
+        1792371515238
+      ]
+    }
+  ],
+  "stats": {
+    "requests": 14,
+    "external": 7,
+    "sinkholed": 7,
+    "logs": 5,
+    "hosts": [
+      "127.0.0.1:18232",
+      "analytics.example.com",
+      "api.coingecko.com",
+      "errors.example.io"
+    ]
+  },
+  "findings": [
+    {
+      "id": "8b45d83f7a",
+      "rule": "A",
+      "ruleName": "Sensitive data in requests",
+      "severity": "high",
+      "title": "Address and amount sent to analytics",
+      "classes": [
+        "address",
+        "amount"
+      ],
+      "destination": "analytics.example.com",
+      "scenario": "checkout",
+      "step": "POST /api/checkout",
+      "occurrences": 3,
+      "firstSeq": 4,
+      "evidence": [
+        {
+          "cls": "address",
+          "kind": "unified-address",
+          "network": "testnet",
+          "pool": "unified",
+          "proof": "checksum",
+          "path": "body.props.recipient",
+          "masked": "utest1dh…lcr2",
+          "ref": "7d9b72df"
+        },
+        {
+          "cls": "amount",
+          "kind": "amount",
+          "proof": "context",
+          "path": "body.props.amount",
+          "masked": "••••",
+          "ref": "1c8adca9"
+        }
+      ],
+      "sample": "POST https://analytics.example.com/v1/track",
+      "fields": [
+        "event",
+        "props.recipient",
+        "props.amount",
+        "ts"
+      ],
+      "at": {
+        "file": "server.ts",
+        "line": 56,
+        "col": 5
+      },
+      "stack": [
+        {
+          "file": "lib/analytics.ts",
+          "line": 6,
+          "col": 3,
+          "fn": "track"
+        },
+        {
+          "file": "server.ts",
+          "line": 56,
+          "col": 5
+        },
+        {
+          "file": "server.ts",
+          "line": 100,
+          "col": 34,
+          "fn": "Server.<anonymous>"
+        }
+      ],
+      "remediation": {
+        "summary": "Send event names, not payment data.",
+        "steps": [
+          "Drop `props.recipient`, `props.amount` from the analytics payload.",
+          "If you need conversion numbers, count them on your server without identifiers.",
+          "Re-run ZcashFlight to confirm the event no longer carries protected fields."
+        ],
+        "refs": [
+          {
+            "label": "Zcash privacy recommendations",
+            "url": "https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html"
+          }
+        ]
+      },
+      "repro": [
+        "zcashflight run --scenario checkout",
+        "Scenario step: POST /api/checkout",
+        "Observed: POST https://analytics.example.com/v1/track"
+      ]
+    },
+    {
+      "id": "7fc2230a05",
+      "rule": "A",
+      "ruleName": "Sensitive data in requests",
+      "severity": "high",
+      "title": "Memo sent to error monitoring",
+      "classes": [
+        "memo"
+      ],
+      "destination": "errors.example.io",
+      "scenario": "errors",
+      "step": "POST /api/checkout",
+      "occurrences": 1,
+      "firstSeq": 16,
+      "evidence": [
+        {
+          "cls": "memo",
+          "kind": "memo",
+          "proof": "context",
+          "path": "body.extra.memo",
+          "masked": "•••• (26 chars)",
+          "ref": "6d8848ba"
+        }
+      ],
+      "sample": "POST https://errors.example.io/api/42/store/",
+      "fields": [
+        "message",
+        "level",
+        "extra.memo"
+      ],
+      "at": {
+        "file": "server.ts",
+        "line": 88,
+        "col": 7,
+        "fn": "routes"
+      },
+      "stack": [
+        {
+          "file": "lib/errors.ts",
+          "line": 6,
+          "col": 3,
+          "fn": "reportError"
+        },
+        {
+          "file": "server.ts",
+          "line": 88,
+          "col": 7,
+          "fn": "routes"
+        },
+        {
+          "file": "server.ts",
+          "line": 100,
+          "col": 40,
+          "fn": "Server.<anonymous>"
+        }
+      ],
+      "remediation": {
+        "summary": "Scrub error reports before they leave the app.",
+        "steps": [
+          "Remove `extra.memo` from the error context.",
+          "Add a scrubbing hook (e.g. Sentry beforeSend) that strips Zcash identifiers, memos and amounts.",
+          "Attach your own random correlation ID instead, so you can still debug."
+        ],
+        "refs": [
+          {
+            "label": "Zcash privacy recommendations",
+            "url": "https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html"
+          }
+        ]
+      },
+      "repro": [
+        "zcashflight run --scenario errors",
+        "Scenario step: POST /api/checkout",
+        "Observed: POST https://errors.example.io/api/42/store/"
+      ]
+    },
+    {
+      "id": "c84f713d32",
+      "rule": "B",
+      "ruleName": "Sensitive data in logs",
+      "severity": "high",
+      "title": "Transaction ID written to a log",
+      "classes": [
+        "txid"
+      ],
+      "destination": "logs/server.log",
+      "scenario": "errors",
+      "step": "POST /api/checkout",
+      "occurrences": 1,
+      "firstSeq": 17,
+      "evidence": [
+        {
+          "cls": "txid",
+          "kind": "txid",
+          "proof": "context",
+          "path": "log",
+          "masked": "b78c…1ab8",
+          "ref": "2ab5de5a"
+        }
+      ],
+      "sample": "2026-10-19T00:58:35.134Z DEBUG broadcast ok txid=b78c…1ab8",
+      "at": {
+        "file": "server/broadcast.ts",
+        "line": 9,
+        "col": 14
+      },
+      "stack": [
+        {
+          "file": "server/broadcast.ts",
+          "line": 9,
+          "col": 14
+        }
+      ],
+      "remediation": {
+        "summary": "Log what happened, not who or how much.",
+        "steps": [
+          "Stop interpolating `log` into log lines.",
+          "Log a locally generated correlation ID; keep the txid ↔ ID mapping out of logs.",
+          "Add a logger redaction rule for Zcash identifiers as a second line of defence."
+        ],
+        "refs": [
+          {
+            "label": "Zcash privacy recommendations",
+            "url": "https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html"
+          }
+        ]
+      },
+      "repro": [
+        "zcashflight run --scenario errors",
+        "Scenario step: POST /api/checkout",
+        "Observed in logs/server.log"
+      ]
+    },
+    {
+      "id": "c89bf9c1fb",
+      "rule": "D",
+      "ruleName": "Third-party data flows",
+      "severity": "medium",
+      "title": "Checkout activity revealed to a price API",
+      "classes": [],
+      "destination": "api.coingecko.com",
+      "scenario": "checkout",
+      "step": "POST /api/checkout",
+      "occurrences": 3,
+      "firstSeq": 2,
+      "evidence": [],
+      "sample": "GET https://api.coingecko.com/api/v3/simple/price?ids=zcash&vs_currencies=usd",
+      "fields": [],
+      "at": {
+        "file": "lib/prices.ts",
+        "line": 5,
+        "col": 21,
+        "fn": "zecPrice"
+      },
+      "stack": [
+        {
+          "file": "lib/prices.ts",
+          "line": 5,
+          "col": 21,
+          "fn": "zecPrice"
+        },
+        {
+          "file": "server.ts",
+          "line": 48,
+          "col": 23
+        },
+        {
+          "file": "server.ts",
+          "line": 100,
+          "col": 34,
+          "fn": "Server.<anonymous>"
+        }
+      ],
+      "remediation": {
+        "summary": "Every third-party call reveals that something happened, and when.",
+        "steps": [
+          "Move this price API call off the user's path: fetch on a schedule on your server and cache it.",
+          "If the call must stay, add the host to destinations: with a purpose so the exposure is a documented decision."
+        ],
+        "refs": [
+          {
+            "label": "Zcash privacy recommendations",
+            "url": "https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html"
+          }
+        ]
+      },
+      "repro": [
+        "zcashflight run --scenario checkout",
+        "Scenario step: POST /api/checkout",
+        "Observed: GET https://api.coingecko.com/api/v3/simple/price?ids=zcash&vs_currencies=usd"
+      ]
+    },
+    {
+      "id": "2f1ad9cbf6",
+      "rule": "C",
+      "ruleName": "Transaction type and public exposure",
+      "severity": "medium",
+      "title": "Payment sent to a transparent address",
+      "classes": [
+        "address"
+      ],
+      "destination": "127.0.0.1:18232",
+      "scenario": "refunds",
+      "step": "POST /api/checkout",
+      "occurrences": 1,
+      "firstSeq": 11,
+      "evidence": [
+        {
+          "cls": "address",
+          "kind": "transparent-p2pkh",
+          "network": "testnet",
+          "pool": "transparent",
+          "proof": "checksum",
+          "path": "body.params[1][0].address",
+          "masked": "tmUS…Wzhs",
+          "ref": "b40b9ae1"
+        }
+      ],
+      "sample": "POST http://127.0.0.1:18232/",
+      "at": {
+        "file": "lib/refund.ts",
+        "line": 9,
+        "col": 17,
+        "fn": "refund"
+      },
+      "stack": [
+        {
+          "file": "lib/wallet.ts",
+          "line": 7,
+          "col": 21,
+          "fn": "call"
+        },
+        {
+          "file": "lib/wallet.ts",
+          "line": 20,
+          "col": 24,
+          "fn": "send"
+        },
+        {
+          "file": "lib/refund.ts",
+          "line": 9,
+          "col": 17,
+          "fn": "refund"
+        },
+        {
+          "file": "server.ts",
+          "line": 75,
+          "col": 11
+        },
+        {
+          "file": "server.ts",
+          "line": 100,
+          "col": 40,
+          "fn": "Server.<anonymous>"
+        }
+      ],
+      "remediation": {
+        "summary": "Keep funds in the shielded pool end to end.",
+        "steps": [
+          "Send to the customer's unified (or Sapling/Orchard) address, never a transparent one.",
+          "Pass privacyPolicy \"FullPrivacy\" to z_sendmany so the wallet refuses revealing transactions.",
+          "Reject transparent refund addresses at input validation."
+        ],
+        "refs": [
+          {
+            "label": "Addresses and value pools",
+            "url": "https://zcash.readthedocs.io/en/latest/rtd_pages/addresses.html"
+          },
+          {
+            "label": "ZIP 316: Unified addresses",
+            "url": "https://zips.z.cash/zip-0316"
+          },
+          {
+            "label": "z_sendmany privacy policies",
+            "url": "https://zcash.github.io/rpc/z_sendmany.html"
+          }
+        ]
+      },
+      "repro": [
+        "zcashflight run --scenario refunds",
+        "Scenario step: POST /api/checkout",
+        "Observed: POST http://127.0.0.1:18232/"
+      ]
+    }
+  ],
+  "coverage": {
+    "tested": [
+      "checkout",
+      "refunds",
+      "errors",
+      "Outbound fetch and http(s) requests from the app process",
+      "Console output and logs/server.log",
+      "Wallet RPC sends (z_sendmany, sendtoaddress, sendmany)"
+    ],
+    "notTested": [
+      "Browser and mobile clients",
+      "Network metadata such as IP address and request timing at the transport layer"
+    ]
+  },
+  "fingerprint": "2aa8 f30c"
+}

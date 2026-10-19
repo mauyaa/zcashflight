@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "ZcashFlight",
+          "informationUri": "https://github.com/mauyaa/zcashflight",
+          "rules": [
+            {
+              "id": "ZF-A",
+              "name": "Sensitive data in requests",
+              "helpUri": "https://github.com/mauyaa/zcashflight/blob/main/docs/reference/rules.md#rule-a"
+            },
+            {
+              "id": "ZF-B",
+              "name": "Sensitive data in logs",
+              "helpUri": "https://github.com/mauyaa/zcashflight/blob/main/docs/reference/rules.md#rule-b"
+            },
+            {
+              "id": "ZF-C",
+              "name": "Transaction type and public exposure",
+              "helpUri": "https://github.com/mauyaa/zcashflight/blob/main/docs/reference/rules.md#rule-c"
+            },
+            {
+              "id": "ZF-D",
+              "name": "Third-party data flows",
+              "helpUri": "https://github.com/mauyaa/zcashflight/blob/main/docs/reference/rules.md#rule-d"
+            }
+          ]
+        }
+      },
+      "results": []
+    }
+  ]
+}
