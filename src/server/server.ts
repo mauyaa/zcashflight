@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
 import { findPolicy, loadPolicy, writeProtect, toClass, type Policy } from '../engine/policy.ts';
 import { runPolicy, type Progress } from '../engine/runner.ts';
-import { listRuns, getRun, compareRuns } from '../engine/store.ts';
+import { listRuns, getRun, previousRun, compareRuns } from '../engine/store.ts';
 import { markdown, html, sarif } from '../engine/report.ts';
 import type { Run } from '../engine/types.ts';
 
@@ -37,7 +37,7 @@ export async function startServer(o: ServerOptions): Promise<string> {
     const p = policy();
     const root = p?.root ?? dir;
     const runs = listRuns(root);
-    const latest = runs[runs.length - 1] ?? null, previous = runs[runs.length - 2] ?? null;
+    const latest = runs[runs.length - 1] ?? null, previous = (latest && previousRun(root, latest.app, latest.n)) ?? null;
     return {
       project: { name: p?.app.name ?? dir.split(sep).pop(), path: pretty(root), policyFile: p ? relative(root, p.file) : null, sample: resolve(root) === SAMPLE, running: !!running },
       policy: p && {
@@ -85,7 +85,7 @@ export async function startServer(o: ServerOptions): Promise<string> {
           const p = policy();
           if (!p) return json(res, 404, { error: 'notfound' });
           if (running) return json(res, 409, { error: 'a run is already in progress' });
-          const before = getRun(p.root);
+          const before = previousRun(p.root, p.app.name);
           const abort = new AbortController();
           running = { abort };
           json(res, 202, { started: true, after: before?.n ?? 0 });
@@ -130,7 +130,7 @@ export async function startServer(o: ServerOptions): Promise<string> {
           const root = policy()?.root ?? dir;
           const run = getRun(root, +rep[1]);
           if (!run) return json(res, 404, { error: 'no such run' });
-          const prev = listRuns(root).filter(r => r.n < run.n).pop();
+          const prev = previousRun(root, run.app, run.n);
           const cmp = prev ? compareRuns(prev, run) : undefined;
           const [type, out] = rep[2] === 'html' ? ['text/html; charset=utf-8', html(run, cmp)] : rep[2] === 'md' ? ['text/markdown; charset=utf-8', markdown(run, cmp)] : rep[2] === 'sarif' ? ['application/sarif+json', JSON.stringify(sarif(run), null, 2)] : ['application/json', JSON.stringify(run, null, 2)];
           res.writeHead(200, { 'content-type': type, 'content-disposition': `attachment; filename="zcashflight-run-${run.n}.${rep[2]}"` });

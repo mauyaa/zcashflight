@@ -38,6 +38,12 @@ export function getRun(root: string, n?: number): Run | undefined {
   return n == null ? runs[runs.length - 1] : runs.find(r => r.n === n);
 }
 
+/** The last run of the same app before run n (or the latest one). Runs of another policy in the same
+ *  folder, such as a mock and a regtest policy, are never compared with each other. */
+export function previousRun(root: string, app: string, before = Infinity): Run | undefined {
+  return listRuns(root).filter(r => r.app === app && r.n < before).pop();
+}
+
 /** Compare two runs by stable finding id. */
 export function compareRuns(a: Run | undefined, b: Run): Comparison {
   if (b.status !== 'complete' || b.scenarios.some(s => !s.ok) || (a && (a.status !== 'complete' || a.scenarios.some(s => !s.ok)))) {

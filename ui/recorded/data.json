@@ -1,5 +1,5 @@
 {
- "recordedAt": "2026-10-20T12:41:00.947Z",
+ "recordedAt": "2026-10-20T13:05:35.607Z",
  "project": {
   "name": "ZecShop",
   "path": "examples/zecshop",
@@ -69,9 +69,9 @@
  "seeded": {
   "version": 1,
   "n": 1,
-  "id": "f83124b2f10d",
-  "startedAt": "2026-10-20T12:40:53.104Z",
-  "finishedAt": "2026-10-20T12:40:54.323Z",
+  "id": "ff10ce652ef4",
+  "startedAt": "2026-10-20T13:05:27.439Z",
+  "finishedAt": "2026-10-20T13:05:28.713Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -95,18 +95,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 42
+      "ms": 48
      },
      {
       "request": "POST /api/orders/:order/paid",
       "status": 200,
       "ok": true,
-      "ms": 31
+      "ms": 26
      }
     ],
     "window": [
-     1792500053463,
-     1792500053536
+     1792501527808,
+     1792501527882
     ]
    },
    {
@@ -118,18 +118,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 12
+      "ms": 26
      },
      {
       "request": "POST /api/orders/:order/fail",
       "status": 200,
       "ok": true,
-      "ms": 42
+      "ms": 22
      }
     ],
     "window": [
-     1792500053536,
-     1792500053590
+     1792501527882,
+     1792501527930
     ]
    },
    {
@@ -141,18 +141,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 22
+      "ms": 25
      },
      {
       "request": "GET /api/orders/:order?simulate=timeout",
       "status": 504,
       "ok": true,
-      "ms": 9
+      "ms": 12
      }
     ],
     "window": [
-     1792500053590,
-     1792500053621
+     1792501527930,
+     1792501527967
     ]
    }
   ],
@@ -170,14 +170,15 @@
   },
   "findings": [
    {
-    "id": "8b45d83f7a",
+    "id": "c170f76c85",
     "rule": "A",
     "ruleName": "Sensitive data in requests",
     "severity": "high",
-    "title": "Address and amount sent to analytics",
+    "title": "Address, amount and memo sent to analytics",
     "classes": [
      "address",
-     "amount"
+     "amount",
+     "memo"
     ],
     "destination": "analytics.example.com",
     "scenario": "checkout",
@@ -191,29 +192,36 @@
       "network": "testnet",
       "pool": "unified",
       "proof": "checksum",
-      "path": "body.props.recipient",
+      "path": "body.props.payment_request[zip321].address",
       "masked": "utest1dh…lcr2",
-      "ref": "abdae73f"
+      "ref": "a1dbc170"
      },
      {
       "cls": "amount",
-      "kind": "amount",
-      "proof": "context",
-      "path": "body.props.amount",
+      "kind": "zip321-amount",
+      "proof": "zip321",
+      "path": "body.props.payment_request[zip321].amount",
       "masked": "••••",
-      "ref": "0b3aa079"
+      "ref": "3438be00"
+     },
+     {
+      "cls": "memo",
+      "kind": "zip321-memo",
+      "proof": "zip321",
+      "path": "body.props.payment_request[zip321].memo",
+      "masked": "•••• (36 chars)",
+      "ref": "54f1e051"
      }
     ],
     "sample": "POST https://analytics.example.com/v1/track",
     "fields": [
      "event",
-     "props.recipient",
-     "props.amount",
+     "props.payment_request",
      "ts"
     ],
     "at": {
      "file": "server.ts",
-     "line": 56,
+     "line": 60,
      "col": 5
     },
     "stack": [
@@ -225,12 +233,12 @@
      },
      {
       "file": "server.ts",
-      "line": 56,
+      "line": 60,
       "col": 5
      },
      {
       "file": "server.ts",
-      "line": 100,
+      "line": 111,
       "col": 34,
       "fn": "Server.<anonymous>"
      }
@@ -238,7 +246,7 @@
     "remediation": {
      "summary": "Send event names, not payment data.",
      "steps": [
-      "Drop `props.recipient`, `props.amount` from the analytics payload.",
+      "Drop `props.payment_request` (a ZIP 321 payment request: who is paid, how much, and the memo) from the analytics payload.",
       "If you need conversion numbers, count them on your server without identifiers.",
       "Re-run ZcashFlight to confirm the event no longer carries protected fields."
      ],
@@ -276,10 +284,10 @@
       "proof": "context",
       "path": "log",
       "masked": "b78c…1ab8",
-      "ref": "daf158fb"
+      "ref": "f0ee4bec"
      }
     ],
-    "sample": "2026-10-20T12:40:53.534Z DEBUG broadcast ok txid=b78c…1ab8",
+    "sample": "2026-10-20T13:05:27.881Z DEBUG broadcast ok txid=b78c…1ab8",
     "at": {
      "file": "server/broadcast.ts",
      "line": 9,
@@ -313,7 +321,7 @@
     ]
    },
    {
-    "id": "7fc2230a05",
+    "id": "ea71744f93",
     "rule": "A",
     "ruleName": "Sensitive data in requests",
     "severity": "high",
@@ -333,7 +341,7 @@
       "proof": "context",
       "path": "body.extra.memo",
       "masked": "•••• (26 chars)",
-      "ref": "e6460a40"
+      "ref": "9be87952"
      }
     ],
     "sample": "POST https://errors.example.io/api/42/store/",
@@ -344,9 +352,8 @@
     ],
     "at": {
      "file": "server.ts",
-     "line": 88,
-     "col": 7,
-     "fn": "routes"
+     "line": 92,
+     "col": 7
     },
     "stack": [
      {
@@ -357,13 +364,12 @@
      },
      {
       "file": "server.ts",
-      "line": 88,
-      "col": 7,
-      "fn": "routes"
+      "line": 92,
+      "col": 7
      },
      {
       "file": "server.ts",
-      "line": 100,
+      "line": 111,
       "col": 40,
       "fn": "Server.<anonymous>"
      }
@@ -418,12 +424,12 @@
      },
      {
       "file": "server.ts",
-      "line": 48,
+      "line": 49,
       "col": 23
      },
      {
       "file": "server.ts",
-      "line": 100,
+      "line": 111,
       "col": 34,
       "fn": "Server.<anonymous>"
      }
@@ -470,7 +476,7 @@
       "proof": "checksum",
       "path": "body.params[1][0].address",
       "masked": "tmUS…Wzhs",
-      "ref": "9cf93900"
+      "ref": "b7a7da9d"
      }
     ],
     "sample": "POST http://127.0.0.1:18232/",
@@ -483,13 +489,13 @@
     "stack": [
      {
       "file": "lib/wallet.ts",
-      "line": 7,
+      "line": 12,
       "col": 21,
       "fn": "call"
      },
      {
       "file": "lib/wallet.ts",
-      "line": 20,
+      "line": 37,
       "col": 24,
       "fn": "send"
      },
@@ -501,12 +507,12 @@
      },
      {
       "file": "server.ts",
-      "line": 75,
+      "line": 79,
       "col": 11
      },
      {
       "file": "server.ts",
-      "line": 100,
+      "line": 111,
       "col": 40,
       "fn": "Server.<anonymous>"
      }
@@ -554,11 +560,11 @@
     "Network metadata such as IP address and request timing at the transport layer"
    ]
   },
-  "fingerprint": "2aa8 f30c"
+  "fingerprint": "4f15 cc39"
  },
  "progress": [
   {
-   "ms": 8,
+   "ms": 7,
    "e": {
     "type": "phase",
     "phase": "starting",
@@ -566,7 +572,7 @@
    }
   },
   {
-   "ms": 130,
+   "ms": 141,
    "e": {
     "type": "captured",
     "requests": 0,
@@ -574,21 +580,21 @@
    }
   },
   {
-   "ms": 366,
+   "ms": 376,
    "e": {
     "type": "phase",
     "phase": "ready"
    }
   },
   {
-   "ms": 366,
+   "ms": 376,
    "e": {
     "type": "phase",
     "phase": "scenarios"
    }
   },
   {
-   "ms": 380,
+   "ms": 392,
    "e": {
     "type": "captured",
     "requests": 1,
@@ -596,7 +602,7 @@
    }
   },
   {
-   "ms": 408,
+   "ms": 424,
    "e": {
     "type": "step",
     "scenario": "checkout",
@@ -606,7 +612,7 @@
    }
   },
   {
-   "ms": 439,
+   "ms": 450,
    "e": {
     "type": "step",
     "scenario": "checkout",
@@ -616,7 +622,7 @@
    }
   },
   {
-   "ms": 451,
+   "ms": 476,
    "e": {
     "type": "step",
     "scenario": "refunds",
@@ -626,7 +632,7 @@
    }
   },
   {
-   "ms": 493,
+   "ms": 498,
    "e": {
     "type": "step",
     "scenario": "refunds",
@@ -636,15 +642,15 @@
    }
   },
   {
-   "ms": 509,
+   "ms": 521,
    "e": {
     "type": "captured",
-    "requests": 12,
+    "requests": 13,
     "logs": 4
    }
   },
   {
-   "ms": 515,
+   "ms": 523,
    "e": {
     "type": "step",
     "scenario": "errors",
@@ -654,7 +660,7 @@
    }
   },
   {
-   "ms": 524,
+   "ms": 535,
    "e": {
     "type": "step",
     "scenario": "errors",
@@ -664,7 +670,7 @@
    }
   },
   {
-   "ms": 630,
+   "ms": 642,
    "e": {
     "type": "captured",
     "requests": 14,
@@ -672,14 +678,14 @@
    }
   },
   {
-   "ms": 1200,
+   "ms": 1184,
    "e": {
     "type": "phase",
     "phase": "evaluating"
    }
   },
   {
-   "ms": 1228,
+   "ms": 1286,
    "e": {
     "type": "phase",
     "phase": "done"
@@ -689,9 +695,9 @@
  "fixed": {
   "version": 1,
   "n": 2,
-  "id": "0077350d67dc",
-  "startedAt": "2026-10-20T12:40:54.464Z",
-  "finishedAt": "2026-10-20T12:40:55.595Z",
+  "id": "9b65dd3befa0",
+  "startedAt": "2026-10-20T13:05:28.918Z",
+  "finishedAt": "2026-10-20T13:05:30.142Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -715,18 +721,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 33
+      "ms": 55
      },
      {
       "request": "POST /api/orders/:order/paid",
       "status": 200,
       "ok": true,
-      "ms": 31
+      "ms": 37
      }
     ],
     "window": [
-     1792500054790,
-     1792500054854
+     1792501529256,
+     1792501529348
     ]
    },
    {
@@ -738,7 +744,7 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 14
+      "ms": 24
      },
      {
       "request": "POST /api/orders/:order/fail",
@@ -748,8 +754,8 @@
      }
     ],
     "window": [
-     1792500054854,
-     1792500054911
+     1792501529348,
+     1792501529415
     ]
    },
    {
@@ -761,18 +767,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 33
+      "ms": 21
      },
      {
       "request": "GET /api/orders/:order?simulate=timeout",
       "status": 504,
       "ok": true,
-      "ms": 3
+      "ms": 10
      }
     ],
     "window": [
-     1792500054911,
-     1792500054947
+     1792501529415,
+     1792501529446
     ]
    }
   ],
@@ -806,7 +812,7 @@
  },
  "fixedProgress": [
   {
-   "ms": 1,
+   "ms": 2,
    "e": {
     "type": "phase",
     "phase": "starting",
@@ -814,7 +820,7 @@
    }
   },
   {
-   "ms": 134,
+   "ms": 137,
    "e": {
     "type": "captured",
     "requests": 0,
@@ -822,29 +828,29 @@
    }
   },
   {
-   "ms": 258,
-   "e": {
-    "type": "captured",
-    "requests": 0,
-    "logs": 1
-   }
-  },
-  {
-   "ms": 327,
+   "ms": 340,
    "e": {
     "type": "phase",
     "phase": "ready"
    }
   },
   {
-   "ms": 327,
+   "ms": 340,
    "e": {
     "type": "phase",
     "phase": "scenarios"
    }
   },
   {
-   "ms": 360,
+   "ms": 387,
+   "e": {
+    "type": "captured",
+    "requests": 1,
+    "logs": 1
+   }
+  },
+  {
+   "ms": 395,
    "e": {
     "type": "step",
     "scenario": "checkout",
@@ -854,15 +860,7 @@
    }
   },
   {
-   "ms": 383,
-   "e": {
-    "type": "captured",
-    "requests": 3,
-    "logs": 2
-   }
-  },
-  {
-   "ms": 391,
+   "ms": 432,
    "e": {
     "type": "step",
     "scenario": "checkout",
@@ -872,7 +870,7 @@
    }
   },
   {
-   "ms": 405,
+   "ms": 456,
    "e": {
     "type": "step",
     "scenario": "refunds",
@@ -882,7 +880,7 @@
    }
   },
   {
-   "ms": 448,
+   "ms": 499,
    "e": {
     "type": "step",
     "scenario": "refunds",
@@ -892,7 +890,15 @@
    }
   },
   {
-   "ms": 481,
+   "ms": 513,
+   "e": {
+    "type": "captured",
+    "requests": 8,
+    "logs": 4
+   }
+  },
+  {
+   "ms": 520,
    "e": {
     "type": "step",
     "scenario": "errors",
@@ -902,7 +908,7 @@
    }
   },
   {
-   "ms": 484,
+   "ms": 530,
    "e": {
     "type": "step",
     "scenario": "errors",
@@ -912,7 +918,7 @@
    }
   },
   {
-   "ms": 507,
+   "ms": 636,
    "e": {
     "type": "captured",
     "requests": 11,
@@ -920,14 +926,14 @@
    }
   },
   {
-   "ms": 1113,
+   "ms": 1207,
    "e": {
     "type": "phase",
     "phase": "evaluating"
    }
   },
   {
-   "ms": 1133,
+   "ms": 1228,
    "e": {
     "type": "phase",
     "phase": "done"
@@ -939,14 +945,15 @@
   "to": 2,
   "closed": [
    {
-    "id": "8b45d83f7a",
+    "id": "c170f76c85",
     "rule": "A",
     "ruleName": "Sensitive data in requests",
     "severity": "high",
-    "title": "Address and amount sent to analytics",
+    "title": "Address, amount and memo sent to analytics",
     "classes": [
      "address",
-     "amount"
+     "amount",
+     "memo"
     ],
     "destination": "analytics.example.com",
     "scenario": "checkout",
@@ -960,29 +967,36 @@
       "network": "testnet",
       "pool": "unified",
       "proof": "checksum",
-      "path": "body.props.recipient",
+      "path": "body.props.payment_request[zip321].address",
       "masked": "utest1dh…lcr2",
-      "ref": "abdae73f"
+      "ref": "a1dbc170"
      },
      {
       "cls": "amount",
-      "kind": "amount",
-      "proof": "context",
-      "path": "body.props.amount",
+      "kind": "zip321-amount",
+      "proof": "zip321",
+      "path": "body.props.payment_request[zip321].amount",
       "masked": "••••",
-      "ref": "0b3aa079"
+      "ref": "3438be00"
+     },
+     {
+      "cls": "memo",
+      "kind": "zip321-memo",
+      "proof": "zip321",
+      "path": "body.props.payment_request[zip321].memo",
+      "masked": "•••• (36 chars)",
+      "ref": "54f1e051"
      }
     ],
     "sample": "POST https://analytics.example.com/v1/track",
     "fields": [
      "event",
-     "props.recipient",
-     "props.amount",
+     "props.payment_request",
      "ts"
     ],
     "at": {
      "file": "server.ts",
-     "line": 56,
+     "line": 60,
      "col": 5
     },
     "stack": [
@@ -994,12 +1008,12 @@
      },
      {
       "file": "server.ts",
-      "line": 56,
+      "line": 60,
       "col": 5
      },
      {
       "file": "server.ts",
-      "line": 100,
+      "line": 111,
       "col": 34,
       "fn": "Server.<anonymous>"
      }
@@ -1007,7 +1021,7 @@
     "remediation": {
      "summary": "Send event names, not payment data.",
      "steps": [
-      "Drop `props.recipient`, `props.amount` from the analytics payload.",
+      "Drop `props.payment_request` (a ZIP 321 payment request: who is paid, how much, and the memo) from the analytics payload.",
       "If you need conversion numbers, count them on your server without identifiers.",
       "Re-run ZcashFlight to confirm the event no longer carries protected fields."
      ],
@@ -1045,10 +1059,10 @@
       "proof": "context",
       "path": "log",
       "masked": "b78c…1ab8",
-      "ref": "daf158fb"
+      "ref": "f0ee4bec"
      }
     ],
-    "sample": "2026-10-20T12:40:53.534Z DEBUG broadcast ok txid=b78c…1ab8",
+    "sample": "2026-10-20T13:05:27.881Z DEBUG broadcast ok txid=b78c…1ab8",
     "at": {
      "file": "server/broadcast.ts",
      "line": 9,
@@ -1082,7 +1096,7 @@
     ]
    },
    {
-    "id": "7fc2230a05",
+    "id": "ea71744f93",
     "rule": "A",
     "ruleName": "Sensitive data in requests",
     "severity": "high",
@@ -1102,7 +1116,7 @@
       "proof": "context",
       "path": "body.extra.memo",
       "masked": "•••• (26 chars)",
-      "ref": "e6460a40"
+      "ref": "9be87952"
      }
     ],
     "sample": "POST https://errors.example.io/api/42/store/",
@@ -1113,9 +1127,8 @@
     ],
     "at": {
      "file": "server.ts",
-     "line": 88,
-     "col": 7,
-     "fn": "routes"
+     "line": 92,
+     "col": 7
     },
     "stack": [
      {
@@ -1126,13 +1139,12 @@
      },
      {
       "file": "server.ts",
-      "line": 88,
-      "col": 7,
-      "fn": "routes"
+      "line": 92,
+      "col": 7
      },
      {
       "file": "server.ts",
-      "line": 100,
+      "line": 111,
       "col": 40,
       "fn": "Server.<anonymous>"
      }
@@ -1187,12 +1199,12 @@
      },
      {
       "file": "server.ts",
-      "line": 48,
+      "line": 49,
       "col": 23
      },
      {
       "file": "server.ts",
-      "line": 100,
+      "line": 111,
       "col": 34,
       "fn": "Server.<anonymous>"
      }
@@ -1239,7 +1251,7 @@
       "proof": "checksum",
       "path": "body.params[1][0].address",
       "masked": "tmUS…Wzhs",
-      "ref": "9cf93900"
+      "ref": "b7a7da9d"
      }
     ],
     "sample": "POST http://127.0.0.1:18232/",
@@ -1252,13 +1264,13 @@
     "stack": [
      {
       "file": "lib/wallet.ts",
-      "line": 7,
+      "line": 12,
       "col": 21,
       "fn": "call"
      },
      {
       "file": "lib/wallet.ts",
-      "line": 20,
+      "line": 37,
       "col": 24,
       "fn": "send"
      },
@@ -1270,12 +1282,12 @@
      },
      {
       "file": "server.ts",
-      "line": 75,
+      "line": 79,
       "col": 11
      },
      {
       "file": "server.ts",
-      "line": 100,
+      "line": 111,
       "col": 40,
       "fn": "Server.<anonymous>"
      }
@@ -1316,9 +1328,9 @@
  "regressed": {
   "version": 1,
   "n": 3,
-  "id": "038a7c44d372",
-  "startedAt": "2026-10-20T12:40:55.600Z",
-  "finishedAt": "2026-10-20T12:40:56.740Z",
+  "id": "b72986ac6df8",
+  "startedAt": "2026-10-20T13:05:30.149Z",
+  "finishedAt": "2026-10-20T13:05:31.347Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -1342,18 +1354,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 35
+      "ms": 38
      },
      {
       "request": "POST /api/orders/:order/paid",
       "status": 200,
       "ok": true,
-      "ms": 25
+      "ms": 41
      }
     ],
     "window": [
-     1792500055925,
-     1792500055985
+     1792501530477,
+     1792501530556
     ]
    },
    {
@@ -1365,18 +1377,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 28
+      "ms": 29
      },
      {
       "request": "POST /api/orders/:order/fail",
       "status": 200,
       "ok": true,
-      "ms": 45
+      "ms": 43
      }
     ],
     "window": [
-     1792500055985,
-     1792500056058
+     1792501530556,
+     1792501530628
     ]
    },
    {
@@ -1388,18 +1400,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 33
+      "ms": 22
      },
      {
       "request": "GET /api/orders/:order?simulate=timeout",
       "status": 504,
       "ok": true,
-      "ms": 15
+      "ms": 11
      }
     ],
     "window": [
-     1792500056058,
-     1792500056106
+     1792501530628,
+     1792501530661
     ]
    }
   ],
@@ -1416,7 +1428,7 @@
   },
   "findings": [
    {
-    "id": "7fc2230a05",
+    "id": "ea71744f93",
     "rule": "A",
     "ruleName": "Sensitive data in requests",
     "severity": "high",
@@ -1436,7 +1448,7 @@
       "proof": "context",
       "path": "body.extra.memo",
       "masked": "•••• (26 chars)",
-      "ref": "bd999f74"
+      "ref": "1bce7add"
      }
     ],
     "sample": "POST https://errors.example.io/api/42/store/",
@@ -1447,9 +1459,8 @@
     ],
     "at": {
      "file": "server.ts",
-     "line": 88,
-     "col": 7,
-     "fn": "routes"
+     "line": 92,
+     "col": 7
     },
     "stack": [
      {
@@ -1460,13 +1471,12 @@
      },
      {
       "file": "server.ts",
-      "line": 88,
-      "col": 7,
-      "fn": "routes"
+      "line": 92,
+      "col": 7
      },
      {
       "file": "server.ts",
-      "line": 100,
+      "line": 111,
       "col": 40,
       "fn": "Server.<anonymous>"
      }
@@ -1506,10 +1516,10 @@
     "Network metadata such as IP address and request timing at the transport layer"
    ]
   },
-  "fingerprint": "254c 6806"
+  "fingerprint": "aaa8 bcca"
  },
  "regressedAdded": [
-  "7fc2230a05"
+  "ea71744f93"
  ],
  "errors": {
   "nostart": {
@@ -1525,15 +1535,15 @@
  "history": [
   {
    "n": 1,
-   "finishedAt": "2026-10-20T12:40:54.323Z",
+   "finishedAt": "2026-10-20T13:05:28.713Z",
    "status": "complete",
    "findings": 5,
-   "fingerprint": "2aa8 f30c",
+   "fingerprint": "4f15 cc39",
    "requests": 14
   },
   {
    "n": 2,
-   "finishedAt": "2026-10-20T12:40:55.595Z",
+   "finishedAt": "2026-10-20T13:05:30.142Z",
    "status": "complete",
    "findings": 0,
    "fingerprint": "9aa9 1e44",

@@ -20,13 +20,24 @@ destinations:
     allow: []
 logs: [app.log]
 `);
+// A shop that has decided transparent payouts are acceptable: a transparent send is policy, not a leak.
+const POLICY_TRANSPARENT_OK = loadPolicy('virtual/zcashflight.yml', `
+app: { name: validation }
+destinations:
+  - host: 127.0.0.1:18232
+    allow: [addresses, amounts, memos, transaction IDs]
+transactions:
+  shielded_only: false
+`);
+const memo = Buffer.from('Order 9001 for Dana').toString('base64url');
+const zip321 = `zcash:${zs}?amount=0.42&memo=${memo}&message=Order%209001`;
 
 const req = (method: string, url: string, body: unknown = '', headers: Record<string, string> = {}) =>
   inspectRequest({ method, url, headers: { 'content-type': typeof body === 'string' ? 'text/plain' : 'application/json', ...headers }, body: typeof body === 'string' ? body : JSON.stringify(body), via: 'fetch' }, KEY);
 const log = (line: string, src = 'app.log') => inspectLog(src, line, KEY)!;
 const rpc = (method: string, params: unknown[]) => req('POST', 'http://127.0.0.1:18232/', { jsonrpc: '2.0', id: 1, method, params });
 
-export interface Case { name: string; events: CaptureEvent[]; expect: { rule: RuleId; severity?: Severity } | null; raw: string[] }
+export interface Case { name: string; events: CaptureEvent[]; expect: { rule: RuleId; severity?: Severity } | null; raw: string[]; policy?: typeof POLICY }
 
 export const CASES: Case[] = [
   { name: 'Unified address and amount in an analytics event', events: [req('POST', 'https://analytics.example.com/track', { event: 'pay', props: { to: ua, amount: 0.5 } })], expect: { rule: 'A', severity: 'high' }, raw: [ua] },
@@ -44,19 +55,23 @@ export const CASES: Case[] = [
   { name: 'Payment to a TEX address', events: [rpc('z_sendmany', ['ANY_UA', [{ address: tex, amount: 1 }], 1, null, 'FullPrivacy'])], expect: { rule: 'C' }, raw: [tex] },
   { name: 'Unapproved price API on the payment path', events: [req('GET', 'https://api.coingecko.com/api/v3/simple/price?ids=zcash&vs_currencies=usd')], expect: { rule: 'D' }, raw: [] },
   { name: 'Structured JSON log with an amount field', events: [log(JSON.stringify({ level: 'info', msg: 'settled', amount_zats: 125000000 }))], expect: { rule: 'B' }, raw: ['125000000'] },
+  { name: 'ZIP 321 payment request in an analytics event', events: [req('POST', 'https://analytics.example.com/track', { event: 'qr_shown', props: { uri: zip321 } })], expect: { rule: 'A', severity: 'high' }, raw: [zs, memo] },
+  { name: 'ZIP 321 payment request written to a log', events: [log(`checkout ready ${zip321}`)], expect: { rule: 'B', severity: 'high' }, raw: [zs, memo] },
   { name: 'Percent-encoded address in a URL', events: [req('GET', `https://track.example.com/p?u=${encodeURIComponent(ua)}`)], expect: { rule: 'A' }, raw: [ua] },
   // must stay silent
   { name: 'Approved wallet RPC receiving address, amount and memo', events: [rpc('z_sendmany', ['ANY_UA', [{ address: ua, amount: 1, memo: '6869' }], 1, null, 'FullPrivacy'])], expect: null, raw: [] },
   { name: 'A sha256 hash in a log, no transaction context', events: [log('cache key 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08 stored')], expect: null, raw: [] },
   { name: 'UUIDs, base58 noise and a one-character-corrupted address', events: [log(`req 3f1c2a9e-4b7d-4c1e-9a55-0c2d8e7f6b1a user 5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTK to ${ua.slice(0, -1)}${ua.endsWith('q') ? 'p' : 'q'}`)], expect: null, raw: [] },
   { name: 'Ordinary English prose', events: [log('Thank you for your order. We will ship it soon and send you an email when it leaves the warehouse.')], expect: null, raw: [] },
+  { name: 'ZIP 321 payment request sent to the approved wallet RPC', events: [req('POST', 'http://127.0.0.1:18232/', { jsonrpc: '2.0', id: 1, method: 'pay', params: [zip321] })], expect: null, raw: [] },
+  { name: 'Transparent payout when the policy permits transparent payments', events: [rpc('z_sendmany', ['ANY_UA', [{ address: t, amount: 1 }], 1, null, 'AllowRevealedRecipients'])], expect: null, raw: [], policy: POLICY_TRANSPARENT_OK },
   { name: 'Approved analytics with an event name only', events: [req('POST', 'https://analytics.example.com/track', { event: 'checkout' })], expect: null, raw: [] },
 ];
 
 export interface Outcome { c: Case; findings: Finding[]; pass: boolean; leakedRaw: boolean }
 
 export function runCase(c: Case): Outcome {
-  const findings = evaluate(c.events, POLICY, [{ name: 'validation', ok: true, steps: [], window: [0, Date.now()] }]);
+  const findings = evaluate(c.events, c.policy ?? POLICY, [{ name: 'validation', ok: true, steps: [], window: [0, Date.now()] }]);
   const pass = c.expect ? findings.some(f => f.rule === c.expect!.rule && (!c.expect!.severity || f.severity === c.expect!.severity)) : findings.length === 0;
   const stored = JSON.stringify(c.events) + JSON.stringify(findings);
   return { c, findings, pass, leakedRaw: c.raw.some(r => r && stored.includes(r)) };

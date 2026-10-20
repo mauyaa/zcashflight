@@ -36,10 +36,10 @@
           "ruleId": "ZF-A",
           "level": "error",
           "message": {
-            "text": "Address and amount sent to analytics (analytics.example.com). Send event names, not payment data."
+            "text": "Address, amount and memo sent to analytics (analytics.example.com). Send event names, not payment data."
           },
           "partialFingerprints": {
-            "zcashflight": "8b45d83f7a"
+            "zcashflight": "c170f76c85"
           },
           "locations": [
             {
@@ -48,7 +48,7 @@
                   "uri": "server.ts"
                 },
                 "region": {
-                  "startLine": 56,
+                  "startLine": 60,
                   "startColumn": 5
                 }
               }
@@ -85,7 +85,7 @@
             "text": "Memo sent to error monitoring (errors.example.io). Scrub error reports before they leave the app."
           },
           "partialFingerprints": {
-            "zcashflight": "7fc2230a05"
+            "zcashflight": "ea71744f93"
           },
           "locations": [
             {
@@ -94,7 +94,7 @@
                   "uri": "server.ts"
                 },
                 "region": {
-                  "startLine": 88,
+                  "startLine": 92,
                   "startColumn": 7
                 }
               }

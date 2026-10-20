@@ -11,6 +11,7 @@ import { zecPrice } from './lib/prices.ts';
 import { refund } from './lib/refund.ts';
 import { sweep } from './server/broadcast.ts';
 import { log } from './lib/log.ts';
+import { CUSTOMER, customerPays, mine } from './lib/regtest.ts';
 
 const PORT = Number(process.env.PORT ?? 4600);
 const CATALOG: Record<string, { name: string; zats: number }> = {
@@ -19,7 +20,7 @@ const CATALOG: Record<string, { name: string; zats: number }> = {
 };
 
 export interface Order {
-  id: string; number: number; amount: string; payTo: string; memo: string;
+  id: string; number: number; amount: string; payTo: string; memo: string; paymentRequest: string;
   unifiedAddress?: string; transparentAddress?: string;
   status: 'pending' | 'paid' | 'failed' | 'refunded';
 }
@@ -48,14 +49,17 @@ const routes: Route[] = [
     const usd = await zecPrice();
     const recipient = await wallet.newAddress();
     const number = next++;
+    const memo = `Order ${number} · paid by ${b.name ?? 'guest'}`;
+    // A ZIP 321 payment request: what the checkout page shows as a QR code and a "pay with wallet" link
+    const paymentRequest = `zcash:${recipient}?amount=${amount}&memo=${Buffer.from(memo).toString('base64url')}&message=${encodeURIComponent(`ZecShop order ${number}`)}`;
     const order: Order = {
-      id: randomUUID(), number, amount, payTo: recipient, memo: `Order ${number} · paid by ${b.name ?? 'guest'}`,
+      id: randomUUID(), number, amount, payTo: recipient, memo, paymentRequest,
       unifiedAddress: b.refund_address, transparentAddress: b.legacy_refund_address, status: 'pending',
     };
     orders.set(order.id, order);
-    track('checkout', { recipient, amount });
+    track('checkout', { payment_request: paymentRequest });
     log.info(`order ${number} created`);
-    return [201, { order_id: order.id, number, pay_to: recipient, amount_zec: amount, usd: usd ? +(usd * +amount).toFixed(2) : null }];
+    return [201, { order_id: order.id, number, pay_to: recipient, amount_zec: amount, payment_request: paymentRequest, usd: usd ? +(usd * +amount).toFixed(2) : null }];
   }],
 
   // The wallet saw the payment: move funds to cold storage.
@@ -90,6 +94,13 @@ const routes: Route[] = [
     }
   }],
 
+
+  // Regtest test harness, not part of the shop: the customer's wallet pays the order for real.
+  ...(CUSTOMER ? [['POST', /^\/regtest\/pay\/([\w-]+)$/, async (_req: IncomingMessage, m: RegExpExecArray) => {
+    const o = orders.get(m[1]);
+    if (!o) return [404, { error: 'no such order' }];
+    return [200, { txid: await customerPays(o.payTo, o.amount, o.memo) }];
+  }] as Route, ['POST', /^\/regtest\/mine$/, async () => { await mine(3); return [200, { mined: 3 }]; }] as Route] : []),
 ];
 
 createServer(async (req, res) => {

@@ -1,8 +1,9 @@
 // Finds sensitive Zcash data inside text and structured payloads.
-// Every hit says how it was proven: a checksum, the BIP-39 wordlist, or the field it sat in.
+// Every hit says how it was proven: a checksum, the BIP-39 wordlist, a valid ZIP 321 payment request, or the field it sat in.
 
 import { classifyToken, type DataClass, type Identifier } from './identifiers.ts';
 import { BIP39_ENGLISH } from './bip39-english.ts';
+import { findPaymentRequests } from './zip321.ts';
 
 export interface Hit extends Identifier {
   value: string;   // raw value; callers mask it before it is stored anywhere
@@ -29,9 +30,19 @@ export function scanText(text: string, path = 'text'): Hit[] {
     for (let i = tok.indexOf('-'); !id && i !== -1; i = m[0].indexOf('-', i + 1)) id = classifyToken(tok = m[0].slice(i + 1));
     if (id) hits.push({ ...id, value: tok, path });
   }
+  // ZIP 321 payment requests: one string that names the recipient, the amount and the memo
+  const requests = findPaymentRequests(text);
+  const inRequest = (i: number) => requests.some(r => i >= r.at && i < r.at + r.uri.length);
+  for (const r of requests) for (const p of r.payments) {
+    const base = `${path}[zip321${p.index ? '.' + p.index : ''}]`;
+    for (const h of hits) if (h.cls === 'address' && h.value === p.address && h.path === path) h.path = `${base}.address`;
+    if (p.amount !== undefined) hits.push({ cls: 'amount', kind: 'zip321-amount', proof: 'zip321', value: p.amount, path: `${base}.amount` });
+    if (p.memo) hits.push({ cls: 'memo', kind: 'zip321-memo', proof: 'zip321', value: p.memo, path: `${base}.memo` });
+  }
   for (const m of text.matchAll(TXID_CTX)) hits.push({ cls: 'txid', kind: 'txid', proof: 'context', value: m[1], path });
   for (const m of text.matchAll(AMOUNT_TXT)) hits.push({ cls: 'amount', kind: 'amount', proof: 'context', value: m[0], path });
   for (const m of text.matchAll(MEMO_TXT)) {
+    if (inRequest(m.index!)) continue;                 // already reported field by field above
     const v = m[2] ?? m[3] ?? m[4] ?? '';
     if (v && v !== 'null' && v !== 'undefined') hits.push({ cls: 'memo', kind: 'memo', proof: 'context', value: v, path });
   }

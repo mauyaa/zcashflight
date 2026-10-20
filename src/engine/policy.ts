@@ -21,7 +21,7 @@ const ALIASES: Record<string, DataClass> = {
 };
 
 export interface Destination { host: string; purpose?: string; allow: DataClass[] }
-export interface Step { method: string; path: string; json?: unknown; headers?: Record<string, string>; expect?: number; save?: Record<string, string> }
+export interface Step { method: string; path: string; json?: unknown; headers?: Record<string, string>; expect?: number; save?: Record<string, string>; timeoutMs?: number }
 export interface Scenario { name: string; description?: string; steps: Step[] }
 export interface LogSource { path: string; allow: DataClass[] }
 
@@ -82,7 +82,7 @@ export function loadPolicy(file: string, source?: string): Policy {
     steps: (s.steps ?? []).map((st: any) => {
       const m = /^(GET|POST|PUT|PATCH|DELETE)\s+(\S+)$/i.exec(String(st.request ?? ''));
       if (!m) throw new PolicyError(`scenario "${s.name}": step needs request: "METHOD /path"`);
-      return { method: m[1].toUpperCase(), path: m[2], json: st.json, headers: st.headers, expect: st.expect, save: st.save };
+      return { method: m[1].toUpperCase(), path: m[2], json: st.json, headers: st.headers, expect: st.expect, save: st.save, timeoutMs: st.timeout_ms === undefined ? undefined : Number(st.timeout_ms) };
     }),
   }));
   return {

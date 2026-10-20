@@ -12,7 +12,7 @@ export interface Identifier {
   kind: string;          // e.g. 'unified-address', 'sapling-address', 'transparent-p2pkh'
   network?: Network;
   pool?: Pool;
-  proof: 'checksum' | 'context' | 'wordlist';
+  proof: 'checksum' | 'context' | 'wordlist' | 'zip321';
 }
 
 interface Bech32Kind { cls: DataClass; kind: string; network: Network; pool?: Pool; variant: 'bech32' | 'bech32m'; bytes?: number }

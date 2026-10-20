@@ -1,9 +1,9 @@
 {
   "version": 1,
   "n": 1,
-  "id": "f83124b2f10d",
-  "startedAt": "2026-10-20T12:40:53.104Z",
-  "finishedAt": "2026-10-20T12:40:54.323Z",
+  "id": "ff10ce652ef4",
+  "startedAt": "2026-10-20T13:05:27.439Z",
+  "finishedAt": "2026-10-20T13:05:28.713Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -27,18 +27,18 @@
           "request": "POST /api/checkout",
           "status": 201,
           "ok": true,
-          "ms": 42
+          "ms": 48
         },
         {
           "request": "POST /api/orders/:order/paid",
           "status": 200,
           "ok": true,
-          "ms": 31
+          "ms": 26
         }
       ],
       "window": [
-        1792500053463,
-        1792500053536
+        1792501527808,
+        1792501527882
       ]
     },
     {
@@ -50,18 +50,18 @@
           "request": "POST /api/checkout",
           "status": 201,
           "ok": true,
-          "ms": 12
+          "ms": 26
         },
         {
           "request": "POST /api/orders/:order/fail",
           "status": 200,
           "ok": true,
-          "ms": 42
+          "ms": 22
         }
       ],
       "window": [
-        1792500053536,
-        1792500053590
+        1792501527882,
+        1792501527930
       ]
     },
     {
@@ -73,18 +73,18 @@
           "request": "POST /api/checkout",
           "status": 201,
           "ok": true,
-          "ms": 22
+          "ms": 25
         },
         {
           "request": "GET /api/orders/:order?simulate=timeout",
           "status": 504,
           "ok": true,
-          "ms": 9
+          "ms": 12
         }
       ],
       "window": [
-        1792500053590,
-        1792500053621
+        1792501527930,
+        1792501527967
       ]
     }
   ],
@@ -102,14 +102,15 @@
   },
   "findings": [
     {
-      "id": "8b45d83f7a",
+      "id": "c170f76c85",
       "rule": "A",
       "ruleName": "Sensitive data in requests",
       "severity": "high",
-      "title": "Address and amount sent to analytics",
+      "title": "Address, amount and memo sent to analytics",
       "classes": [
         "address",
-        "amount"
+        "amount",
+        "memo"
       ],
       "destination": "analytics.example.com",
       "scenario": "checkout",
@@ -123,29 +124,36 @@
           "network": "testnet",
           "pool": "unified",
           "proof": "checksum",
-          "path": "body.props.recipient",
+          "path": "body.props.payment_request[zip321].address",
           "masked": "utest1dh…lcr2",
-          "ref": "abdae73f"
+          "ref": "a1dbc170"
         },
         {
           "cls": "amount",
-          "kind": "amount",
-          "proof": "context",
-          "path": "body.props.amount",
+          "kind": "zip321-amount",
+          "proof": "zip321",
+          "path": "body.props.payment_request[zip321].amount",
           "masked": "••••",
-          "ref": "0b3aa079"
+          "ref": "3438be00"
+        },
+        {
+          "cls": "memo",
+          "kind": "zip321-memo",
+          "proof": "zip321",
+          "path": "body.props.payment_request[zip321].memo",
+          "masked": "•••• (36 chars)",
+          "ref": "54f1e051"
         }
       ],
       "sample": "POST https://analytics.example.com/v1/track",
       "fields": [
         "event",
-        "props.recipient",
-        "props.amount",
+        "props.payment_request",
         "ts"
       ],
       "at": {
         "file": "server.ts",
-        "line": 56,
+        "line": 60,
         "col": 5
       },
       "stack": [
@@ -157,12 +165,12 @@
         },
         {
           "file": "server.ts",
-          "line": 56,
+          "line": 60,
           "col": 5
         },
         {
           "file": "server.ts",
-          "line": 100,
+          "line": 111,
           "col": 34,
           "fn": "Server.<anonymous>"
         }
@@ -170,7 +178,7 @@
       "remediation": {
         "summary": "Send event names, not payment data.",
         "steps": [
-          "Drop `props.recipient`, `props.amount` from the analytics payload.",
+          "Drop `props.payment_request` (a ZIP 321 payment request: who is paid, how much, and the memo) from the analytics payload.",
           "If you need conversion numbers, count them on your server without identifiers.",
           "Re-run ZcashFlight to confirm the event no longer carries protected fields."
         ],
@@ -208,10 +216,10 @@
           "proof": "context",
           "path": "log",
           "masked": "b78c…1ab8",
-          "ref": "daf158fb"
+          "ref": "f0ee4bec"
         }
       ],
-      "sample": "2026-10-20T12:40:53.534Z DEBUG broadcast ok txid=b78c…1ab8",
+      "sample": "2026-10-20T13:05:27.881Z DEBUG broadcast ok txid=b78c…1ab8",
       "at": {
         "file": "server/broadcast.ts",
         "line": 9,
@@ -245,7 +253,7 @@
       ]
     },
     {
-      "id": "7fc2230a05",
+      "id": "ea71744f93",
       "rule": "A",
       "ruleName": "Sensitive data in requests",
       "severity": "high",
@@ -265,7 +273,7 @@
           "proof": "context",
           "path": "body.extra.memo",
           "masked": "•••• (26 chars)",
-          "ref": "e6460a40"
+          "ref": "9be87952"
         }
       ],
       "sample": "POST https://errors.example.io/api/42/store/",
@@ -276,9 +284,8 @@
       ],
       "at": {
         "file": "server.ts",
-        "line": 88,
-        "col": 7,
-        "fn": "routes"
+        "line": 92,
+        "col": 7
       },
       "stack": [
         {
@@ -289,13 +296,12 @@
         },
         {
           "file": "server.ts",
-          "line": 88,
-          "col": 7,
-          "fn": "routes"
+          "line": 92,
+          "col": 7
         },
         {
           "file": "server.ts",
-          "line": 100,
+          "line": 111,
           "col": 40,
           "fn": "Server.<anonymous>"
         }
@@ -350,12 +356,12 @@
         },
         {
           "file": "server.ts",
-          "line": 48,
+          "line": 49,
           "col": 23
         },
         {
           "file": "server.ts",
-          "line": 100,
+          "line": 111,
           "col": 34,
           "fn": "Server.<anonymous>"
         }
@@ -402,7 +408,7 @@
           "proof": "checksum",
           "path": "body.params[1][0].address",
           "masked": "tmUS…Wzhs",
-          "ref": "9cf93900"
+          "ref": "b7a7da9d"
         }
       ],
       "sample": "POST http://127.0.0.1:18232/",
@@ -415,13 +421,13 @@
       "stack": [
         {
           "file": "lib/wallet.ts",
-          "line": 7,
+          "line": 12,
           "col": 21,
           "fn": "call"
         },
         {
           "file": "lib/wallet.ts",
-          "line": 20,
+          "line": 37,
           "col": 24,
           "fn": "send"
         },
@@ -433,12 +439,12 @@
         },
         {
           "file": "server.ts",
-          "line": 75,
+          "line": 79,
           "col": 11
         },
         {
           "file": "server.ts",
-          "line": 100,
+          "line": 111,
           "col": 40,
           "fn": "Server.<anonymous>"
         }
@@ -486,5 +492,5 @@
       "Network metadata such as IP address and request timing at the transport layer"
     ]
   },
-  "fingerprint": "2aa8 f30c"
+  "fingerprint": "4f15 cc39"
 }

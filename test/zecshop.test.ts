@@ -17,18 +17,20 @@ cpSync(SRC, work, { recursive: true, filter: s => !/[\\/](\.zcashflight|logs|dat
 const fixes = (m: string) => spawnSync(process.execPath, [join(work, 'scripts', 'fixes.ts'), m], { cwd: work });
 const policy = () => loadPolicy(join(work, 'zcashflight.yml'));
 // raw synthetic values ZecShop handles; none may appear in anything ZcashFlight stores
-const RAW = ['utest1vnnewz8teentaw5l4z4925nun89', 'tmUSebGk2Dd7sxQUKFauzR6V6zc51AgWzhs', 'b78cb1fe9f7191acefa6f221fe535421972594ff507a54640c3217e4e5a61ab8', 'paid by Amina', 'utest1dh7ukkzyx28wg7kny2qddsnu5yh'];
+const RAW = ['utest1vnnewz8teentaw5l4z4925nun89', 'tmUSebGk2Dd7sxQUKFauzR6V6zc51AgWzhs', 'b78cb1fe9f7191acefa6f221fe535421972594ff507a54640c3217e4e5a61ab8', 'paid by Amina', 'T3JkZXIg', 'utest1dh7ukkzyx28wg7kny2qddsnu5yh'];
 
 test('ZecShop: finds the five seeded leaks, fixes close them, nothing raw is stored', { timeout: 120000 }, async () => {
   fixes('reset');
   const before = await runPolicy(policy());
   assert.equal(before.status, 'complete');
   assert.deepEqual(before.findings.map(f => `${f.rule} ${f.title}`).sort(), [
-    'A Address and amount sent to analytics', 'A Memo sent to error monitoring', 'B Transaction ID written to a log',
+    'A Address, amount and memo sent to analytics', 'A Memo sent to error monitoring', 'B Transaction ID written to a log',
     'C Payment sent to a transparent address', 'D Checkout activity revealed to a price API',
   ]);
   const where = Object.fromEntries(before.findings.map(f => [f.rule + f.destination, `${f.at?.file}:${f.at?.line}`]));
-  assert.equal(where['Aanalytics.example.com'], 'server.ts:56');
+  assert.equal(where['Aanalytics.example.com'], 'server.ts:60', 'the line that hands the payment request to analytics');
+  const zip = before.findings.find(f => f.destination === 'analytics.example.com')!.evidence;
+  assert.deepEqual(zip.map(e => `${e.cls}:${e.proof}`).sort(), ['address:checksum', 'amount:zip321', 'memo:zip321'], 'the ZIP 321 request is reported field by field');
   assert.equal(where['Blogs/server.log'], 'server/broadcast.ts:9');
   assert.match(where['C127.0.0.1:18232'], /^lib\/refund\.ts:/);
   assert.equal(before.stats.sinkholed, before.stats.external, 'every third-party request was kept off the network');

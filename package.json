@@ -39,6 +39,7 @@
     "test": "node --test \"test/*.test.ts\"",
     "validate": "node test/validate.ts",
     "demo": "node scripts/demo.ts",
+    "regtest": "node examples/zecshop/regtest/proof.ts",
     "ui": "node bin/zcashflight.js ui --dir examples/zecshop",
     "build": "node scripts/build.ts",
     "record": "node scripts/record.ts",

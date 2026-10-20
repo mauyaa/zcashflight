@@ -2,28 +2,29 @@
 
 **5 privacy leaks found.**
 
-Run 1 · testnet · 20 Oct 2026, 12:40 UTC · fingerprint `2aa8 f30c` · 14 requests, 5 log lines, 7 kept off the network
+Run 1 · testnet · 20 Oct 2026, 13:05 UTC · fingerprint `4f15 cc39` · 14 requests, 5 log lines, 7 kept off the network
 
 | | Finding | Rule | Where | Code |
 |---|---|---|---|---|
-| 🟧 high | Address and amount sent to analytics | A · Sensitive data in requests | `analytics.example.com` | `server.ts:56` |
+| 🟧 high | Address, amount and memo sent to analytics | A · Sensitive data in requests | `analytics.example.com` | `server.ts:60` |
 | 🟧 high | Transaction ID written to a log | B · Sensitive data in logs | `logs/server.log` | `server/broadcast.ts:9` |
-| 🟧 high | Memo sent to error monitoring | A · Sensitive data in requests | `errors.example.io` | `server.ts:88` |
+| 🟧 high | Memo sent to error monitoring | A · Sensitive data in requests | `errors.example.io` | `server.ts:92` |
 | 🟨 medium | Checkout activity revealed to a price API | D · Third-party data flows | `api.coingecko.com` | `lib/prices.ts:5` |
 | 🟨 medium | Payment sent to a transparent address | C · Transaction type and public exposure | `127.0.0.1:18232` | `lib/refund.ts:9` |
 
-<details><summary><b>Address and amount sent to analytics</b> · high · <code>server.ts:56</code></summary>
+<details><summary><b>Address, amount and memo sent to analytics</b> · high · <code>server.ts:60</code></summary>
 
 Scenario **checkout**, 3 occurrences. Evidence is masked.
 
 ```
 POST https://analytics.example.com/v1/track
-body.props.recipient: utest1dh…lcr2   (unified-address, checksum-verified)
-body.props.amount: ••••   (amount, by field name)
+body.props.payment_request[zip321].address: utest1dh…lcr2   (unified-address, checksum-verified)
+body.props.payment_request[zip321].amount: ••••   (zip321-amount, valid ZIP 321 payment request)
+body.props.payment_request[zip321].memo: •••• (36 chars)   (zip321-memo, valid ZIP 321 payment request)
 ```
 
 **Fix:** Send event names, not payment data.
-- Drop `props.recipient`, `props.amount` from the analytics payload.
+- Drop `props.payment_request` (a ZIP 321 payment request: who is paid, how much, and the memo) from the analytics payload.
 - If you need conversion numbers, count them on your server without identifiers.
 - Re-run ZcashFlight to confirm the event no longer carries protected fields.
 
@@ -38,7 +39,7 @@ body.props.amount: ••••   (amount, by field name)
 Scenario **errors**, 1 occurrence. Evidence is masked.
 
 ```
-2026-10-20T12:40:53.534Z DEBUG broadcast ok txid=b78c…1ab8
+2026-10-20T13:05:27.881Z DEBUG broadcast ok txid=b78c…1ab8
 log: b78c…1ab8   (txid, by field name)
 ```
 
@@ -53,7 +54,7 @@ log: b78c…1ab8   (txid, by field name)
 
 </details>
 
-<details><summary><b>Memo sent to error monitoring</b> · high · <code>server.ts:88</code></summary>
+<details><summary><b>Memo sent to error monitoring</b> · high · <code>server.ts:92</code></summary>
 
 Scenario **errors**, 1 occurrence. Evidence is masked.
 

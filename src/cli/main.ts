@@ -4,7 +4,7 @@ import { writeFileSync, existsSync, readFileSync, appendFileSync, mkdirSync } fr
 import { resolve, join, dirname, basename } from 'node:path';
 import { findPolicy, loadPolicy, defaultPolicy, PolicyError, type Policy } from '../engine/policy.ts';
 import { runPolicy, scanFiles, type Progress } from '../engine/runner.ts';
-import { listRuns, getRun, compareRuns, loadBaseline, stateDir } from '../engine/store.ts';
+import { listRuns, getRun, previousRun, compareRuns, loadBaseline, stateDir } from '../engine/store.ts';
 import { markdown, html, sarif, headline } from '../engine/report.ts';
 import { startProxy } from '../capture/proxy.ts';
 import { runKey } from '../engine/mask.ts';
@@ -31,8 +31,11 @@ function args(argv: string[]) {
   return { pos, flags };
 }
 
+let POLICY_FILE: string | undefined;  // --policy <file> picks a policy other than ./zcashflight.yml
+const policyFile = (dir: string) => POLICY_FILE ?? findPolicy(dir);
+
 function policyFor(dir: string): Policy {
-  const f = findPolicy(dir);
+  const f = policyFile(dir);
   if (!f) throw new PolicyError(`no zcashflight.yml in ${dir}. Run \`zcashflight init\` to create one.`);
   return loadPolicy(f);
 }
@@ -50,7 +53,7 @@ function printRun(run: Run, prev?: Run) {
     const isNew = cmp?.added.some(a => a.id === f.id);
     console.log(`  ${SEV[f.severity](f.severity.padEnd(8))} ${bold(f.title)}${isNew ? red('  new') : ''}`);
     console.log(dim(`           ${f.rule} · to ${f.destination}${f.at ? ` · ${f.at.file}:${f.at.line}` : ''}`));
-    for (const e of f.evidence.slice(0, 3)) console.log(`           ${dim(e.path + ':')} ${red(e.masked)} ${dim(`(${e.proof === 'checksum' ? 'checksum ✓' : e.proof})`)}`);
+    for (const e of f.evidence.slice(0, 3)) console.log(`           ${dim(e.path + ':')} ${red(e.masked)} ${dim(`(${e.proof === 'checksum' ? 'checksum ✓' : e.proof === 'zip321' ? 'ZIP 321 ✓' : e.proof})`)}`);
     console.log(`           ${lime('fix')} ${f.remediation.summary}`);
     console.log('');
   }
@@ -105,18 +108,20 @@ ${bold('zcashflight')} ${dim(VERSION)} — privacy tests for Zcash apps. Privacy
   ${bold('zcashflight synth')}              print synthetic testnet identifiers with valid checksums
   ${bold('zcashflight list')}               past runs
 
-  --dir <path>   project folder (default: current folder)
+  --dir <path>      project folder (default: current folder)
+  --policy <file>   use this policy file instead of ./zcashflight.yml
 `;
 
 export async function main(argv = process.argv.slice(2)): Promise<number> {
   const [cmd = 'help', ...rest] = argv;
   const { pos, flags } = args(rest);
   const dir = resolve(String(flags.dir ?? process.cwd()));
+  POLICY_FILE = typeof flags.policy === 'string' ? resolve(flags.policy) : undefined;
   try {
     switch (cmd) {
       case 'run': {
         const p = policyFor(dir);
-        const prev = getRun(p.root);
+        const prev = previousRun(p.root, p.app.name);
         console.log(`${bold('zcashflight')} ${dim('·')} ${p.app.name} ${dim(`· ${p.scenarios.length} scenario${p.scenarios.length === 1 ? "" : "s"} · protecting ${p.protect.length} kinds of data`)}`);
         const run = await runPolicy(p, { scenario: flags.scenario as string, onProgress: progress() });
         if (tty) process.stdout.write('\r\x1b[K');
@@ -129,7 +134,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       }
       case 'scan': {
         if (!pos.length) throw new PolicyError('usage: zcashflight scan <file.har | file.log>…');
-        const f = findPolicy(dir);
+        const f = policyFile(dir);
         const p = f ? loadPolicy(f) : defaultPolicy(dir);
         const run = scanFiles(p, pos.map(x => resolve(x)));
         printRun(run);
@@ -137,10 +142,10 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
         return flags.ci ? gate(run, p.root, String(flags['fail-on'] ?? 'medium')) : 0;
       }
       case 'compare': {
-        const root = (findPolicy(dir) ? policyFor(dir).root : dir);
+        const root = (policyFile(dir) ? policyFor(dir).root : dir);
         const runs = listRuns(root);
         const b = pos[1] ? getRun(root, +pos[1]) : pos[0] ? getRun(root, +pos[0] + 1) ?? runs[runs.length - 1] : runs[runs.length - 1];
-        const a = pos[0] ? getRun(root, +pos[0]) : runs[runs.length - 2];
+        const a = pos[0] ? getRun(root, +pos[0]) : b && previousRun(root, b.app, b.n);
         if (!b) throw new PolicyError('no runs yet. Try `zcashflight run`.');
         const cmp = compareRuns(a, b);
         console.log(`\nrun ${cmp.from || '—'} → run ${cmp.to}: ${bold(cmp.verdict)}`);
@@ -151,16 +156,16 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
         return cmp.verdict === 'incomplete' ? 2 : cmp.verdict === 'regressed' ? 1 : 0;
       }
       case 'report': {
-        const root = findPolicy(dir) ? policyFor(dir).root : dir;
+        const root = policyFile(dir) ? policyFor(dir).root : dir;
         const runs = listRuns(root);
         const run = pos[0] ? getRun(root, +pos[0]) : runs[runs.length - 1];
         if (!run) throw new PolicyError('no runs yet. Try `zcashflight run`.');
-        const prev = runs.filter(r => r.n < run.n).pop();
+        const prev = previousRun(root, run.app, run.n);
         writeOut(run, String(flags.format ?? (String(flags.out ?? '').endsWith('.html') ? 'html' : 'md')), flags.out as string | undefined, prev);
         return 0;
       }
       case 'list': {
-        const root = findPolicy(dir) ? policyFor(dir).root : dir;
+        const root = policyFile(dir) ? policyFor(dir).root : dir;
         for (const r of listRuns(root)) console.log(`  ${String(r.n).padStart(3)}  ${dim(r.finishedAt.slice(0, 16).replace('T', ' '))}  ${r.findings.length ? red(plural(r.findings.length, 'leak').padEnd(8)) : lime('clean   ')}  ${dim(r.status)}  ${dim(r.fingerprint)}`);
         return 0;
       }
@@ -179,8 +184,8 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
         return 0;
       }
       case 'proxy': {
-        const root = findPolicy(dir) ? policyFor(dir).root : dir;
-        const p = findPolicy(dir) ? policyFor(dir) : defaultPolicy(dir);
+        const root = policyFile(dir) ? policyFor(dir).root : dir;
+        const p = policyFile(dir) ? policyFor(dir) : defaultPolicy(dir);
         const out = join(stateDir(root), 'tmp', `proxy-${Date.now()}.ndjson`);
         const key = runKey();
         let n = 0;

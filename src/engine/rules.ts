@@ -51,7 +51,10 @@ const REFS = {
 };
 
 function remediation(rule: RuleId, cat: string, classes: DataClass[], fields: string[]): Finding['remediation'] {
-  const f = fields.length ? fields.map(x => '`' + x + '`').join(', ') : 'the protected fields';
+  // A ZIP 321 request is one value: name the field that carries it, not its address/amount/memo parts
+  const zip = fields.some(x => /\[zip321/.test(x));
+  const named = [...new Set(fields.map(x => x.replace(/\[zip321[^\]]*\]\.\w+$/, '')))];
+  const f = named.length ? named.map(x => '`' + x + '`').join(', ') + (zip ? ' (a ZIP 321 payment request: who is paid, how much, and the memo)' : '') : 'the protected fields';
   const secret = classes.some(c => c === 'spending-key' || c === 'seed-phrase' || c === 'viewing-key');
   if (secret) return {
     summary: 'Treat this key material as compromised: rotate it, then remove every code path that can serialise it.',
@@ -106,7 +109,11 @@ function snippetAt(root: string, at?: Finding['at']): string | undefined {
 function origin(root: string, g: Group, fields: string[]): Pick<Finding, 'at' | 'stack' | 'snippet'> {
   const stack = g.stack ?? (g.at ? [g.at] : []);
   if (!stack.length) return {};
-  const keys = [...new Set(fields.map(f => f.split(/[.[\]]/).filter(Boolean).pop() ?? '').filter(k => k.length > 2))];
+  // A field's own name, and for a ZIP 321 request the name of the field that carried the whole request
+  const keys = [...new Set(fields.flatMap(f => {
+    const seg = f.split(/[.[\]]/).filter(Boolean), z = seg.findIndex(x => x.startsWith('zip321'));
+    return z > 0 ? [seg[z - 1], seg[seg.length - 1]] : [seg[seg.length - 1] ?? ''];
+  }).filter(k => k.length > 2))];
   const lines = stack.map(l => snippetAt(root, l) ?? '');
   let i = g.rule === 'C' ? stack.findIndex(l => l.file !== stack[0].file) : -1;
   if (i === -1 && keys.length) i = lines.findIndex(s => keys.some(k => new RegExp(`\\b${k.replace(/[^\w]/g, '')}\\b`).test(s)));

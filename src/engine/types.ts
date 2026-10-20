@@ -8,7 +8,7 @@ export interface MaskedHit {
   kind: string;
   network?: Network;
   pool?: Pool;
-  proof: 'checksum' | 'context' | 'wordlist';
+  proof: 'checksum' | 'context' | 'wordlist' | 'zip321';
   path: string;
   masked: string;  // safe-to-display form, e.g. "utest1c9…k3fz" or "[redacted seed phrase]"
   ref: string;     // keyed hash with a per-run key: links repeats of one value inside a run, unlinkable across runs

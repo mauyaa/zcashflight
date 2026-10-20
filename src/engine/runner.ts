@@ -99,7 +99,7 @@ export async function runPolicy(policy: Policy, opts: RunOptions = {}): Promise<
             method: st.method,
             headers: { ...(st.json !== undefined ? { 'content-type': 'application/json' } : {}), ...(st.headers ?? {}) },
             body: st.json !== undefined ? JSON.stringify(fill(st.json)) : undefined,
-            signal: AbortSignal.timeout(10000),
+            signal: AbortSignal.timeout(st.timeoutMs ?? 10000),
           });
           const text = await res.text();
           if (st.save) { try { const j = JSON.parse(text); for (const [k, f] of Object.entries(st.save)) vars[k] = String(f.split('.').reduce((o: any, x) => o?.[x], j) ?? ''); } catch { /* not JSON */ } }

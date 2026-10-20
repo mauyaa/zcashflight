@@ -106,7 +106,7 @@
   function findings(){return S.run?S.run.findings:[]}
   function proofText(h){
     var kind=h.kind.replace(/-/g,' ');
-    var how=h.proof==='checksum'?'encoding and checksum verified':h.proof==='wordlist'?'every word is in the BIP-39 list':'recognised by its field name';
+    var how=h.proof==='checksum'?'encoding and checksum verified':h.proof==='wordlist'?'every word is in the BIP-39 list':h.proof==='zip321'?'part of a valid ZIP 321 payment request':'recognised by its field name';
     return kind+(h.network?' · '+h.network:'')+' · '+how;
   }
   function sec(h){return '<b class="secret" tabindex="0" data-mask="'+esc(h.masked)+'" data-full="'+esc(proofText(h))+'">'+esc(h.masked)+'</b>'}

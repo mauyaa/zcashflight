@@ -36,7 +36,7 @@ export function markdown(run: Run, cmp?: Comparison): string {
       L.push(`<details><summary><b>${esc(f.title)}</b> · ${f.severity} · <code>${esc(loc(f))}</code></summary>`, '');
       L.push(`Scenario **${f.scenario}**, ${f.occurrences} occurrence${f.occurrences === 1 ? '' : 's'}. Evidence is masked.`, '', '```');
       L.push(f.sample);
-      for (const e of f.evidence) L.push(`${e.path}: ${e.masked}   (${e.kind}, ${e.proof === 'checksum' ? 'checksum-verified' : e.proof === 'wordlist' ? 'BIP-39 wordlist' : 'by field name'})`);
+      for (const e of f.evidence) L.push(`${e.path}: ${e.masked}   (${e.kind}, ${e.proof === 'checksum' ? 'checksum-verified' : e.proof === 'wordlist' ? 'BIP-39 wordlist' : e.proof === 'zip321' ? 'valid ZIP 321 payment request' : 'by field name'})`);
       L.push('```');
       if (f.snippet) L.push('', `\`${loc(f)}\``, '```', f.snippet, '```');
       L.push('', `**Fix:** ${f.remediation.summary}`, ...f.remediation.steps.map(s => `- ${s}`), '');

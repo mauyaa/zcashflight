@@ -2,11 +2,11 @@
 
 **All 5 leaks closed. No leaks detected in these tests.**
 
-Run 2 · testnet · 20 Oct 2026, 12:40 UTC · fingerprint `9aa9 1e44` · 11 requests, 5 log lines, 4 kept off the network
+Run 2 · testnet · 20 Oct 2026, 13:05 UTC · fingerprint `9aa9 1e44` · 11 requests, 5 log lines, 4 kept off the network
 
 Compared with run 1: **5 closed**, 0 still open, **0 new**.
 
-- ~~Address and amount sent to analytics~~ closed
+- ~~Address, amount and memo sent to analytics~~ closed
 - ~~Transaction ID written to a log~~ closed
 - ~~Memo sent to error monitoring~~ closed
 - ~~Checkout activity revealed to a price API~~ closed
