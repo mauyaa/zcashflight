@@ -1,11 +1,17 @@
 # Contributing
 
-Thanks for helping. ZcashFlight is small on purpose, so these rules keep it that way.
+Thanks for helping. Please follow the [code of conduct](CODE_OF_CONDUCT.md). ZcashFlight is small on purpose, so these rules keep it that way.
 
 ## Set up
 
-You need Node 22.18 or later. There is nothing to install.
+You need Node 22.18 or later. `npm ci` installs the two dev-only type packages (`typescript`, `@types/node`); the tool itself has no runtime dependencies.
 
+```bash
+npm ci
+```
+```bash
+npm run typecheck
+```
 ```bash
 npm test
 ```
@@ -16,7 +22,7 @@ npm run validate
 npm run demo
 ```
 
-All three must pass before a pull request is merged.
+All of these must pass before a pull request is merged. For changes to capture or wallet handling, also run the real-chain proof: `npm run regtest` ([guide](docs/guides/regtest.md)).
 
 ## Rules of the codebase
 
@@ -25,7 +31,7 @@ All three must pass before a pull request is merged.
 - **Raw values never leave `inspect.ts` unmasked.** Any new capture path must go through `inspectRequest` or `inspectLog`. Add a test that asserts the raw value isn't stored.
 - **Rules are deterministic.** No network calls and no randomness in `src/engine/rules.ts`.
 - **New detection needs both a positive and a negative case** in `test/cases.ts`.
-- **Dashboard changes** must keep `test/ui-audit.js` at 18/18 at 320, 390, 768, 1024, 1366, 1440 and 1920 px (re-run steps in the design system), and use tokens from `ui/style.css`. Don't add new colours ([design system](docs/design/design-system.md)).
+- **Dashboard changes** must keep `test/ui-audit.js` at 18/18 at 320, 360, 390, 412, 768, 1024, 1280, 1366, 1440 and 1920 px (re-run steps in the design system), and use tokens from `ui/style.css`. Don't add new colours ([design system](docs/design/design-system.md)).
 
 ## Docs impact
 
