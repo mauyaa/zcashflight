@@ -12,6 +12,7 @@
 - Keep keys and seeds protected in log policies. Failed HTTP expectations and empty scenario selections cannot pass as clean runs; incomplete comparisons close no findings and exit with code 2.
 - Reject malformed dashboard tokens and URL escapes without crashing, and enforce the static directory boundary.
 - Preserve POSIX leading slashes in stack-frame locations.
+- Leak details: the back / next row no longer overlaps the title (a header class collided with it); long evidence lines wrap instead of scrolling sideways. The layout audit now checks both, plus the logo against the header links.
 - Code locations resolve when the project path is a symlink (macOS `/var` → `/private/var`).
 - The installed package (`dist/`) loads its collector correctly; previously apps failed to start when run from a build.
 - Dashboard: "Run on <your app>" runs the open project (it ran the ZecShop sample); a reload keeps the last saved run; singular wording for one leak, request or fix.
@@ -19,7 +20,8 @@
 
 ### Design and documentation
 
-- Wordmark set in Michroma (SIL OFL), outlined by `scripts/wordmark.py`, aligned to the content keyline at every width with a 44 px tap target.
+- The lime Z mark is the project's only logo: header lockup, favicon, app icon, HTML reports, README and a 1200 × 630 share image. `scripts/brand.py` builds every asset from its master SVG; the old Z-circle and "ZF" marks are gone.
+- The ZCASHFLIGHT name set in Michroma (SIL OFL) as outlines, aligned to the content keyline at every width with a 44 px tap target.
 - Concept positioning and buttons restored; the project's own illustrations (locks, gears, paper plane) in the three circles.
 - Scroll (wheel/trackpad), Page Up/Down and arrow keys move between pages; long pages scroll first, and typing in the folder field is never interrupted.
 - Page 4: a hand-drawn arrow and "TAP A LEAK" label point to the leak circles; circles and list rows highlight each other; hero, app and final circles are clickable.

@@ -1,3 +1,5 @@
+<p><img src="brand/logo/zcashflight-mark.svg" alt="ZcashFlight" width="72"></p>
+
 # ZcashFlight — privacy tests for Zcash apps
 
 **ZcashFlight helps Zcash wallet and payment developers find and fix privacy leaks before release, by running their app's real flows and checking every request and log line against a privacy policy.**

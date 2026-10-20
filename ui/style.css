@@ -218,8 +218,13 @@ h3{font-weight:500;font-size:clamp(1.7rem,min(3vw,5vh),2.3rem);line-height:1.05;
 }
 
 /* ---- additions for real runs, in the concept's own language ---- */
-.word img{display:block;height:16px;width:auto}
-@media (max-width:820px){.word img{height:13px}}
+/* the lockup: Z mark, then the name; the mark's left edge sits on the keyline */
+.word{gap:12px}
+.word img{display:block;width:auto}
+.word .mark{height:22px}
+.word .name{height:16px}
+@media (max-width:820px){.word{gap:9px}.word .mark{height:17px}.word .name{height:13px}}
+@media (max-width:360px){.word{gap:8px}.word .mark{height:15px}.word .name{height:12px}}
 .stepline{font-family:var(--mono);font-size:12.5px;letter-spacing:0;color:var(--ink-3);min-height:1.9em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .stepline b{font-weight:500;color:var(--ink-2)}
 .count-cap{font-size:12px;color:var(--ink-3);margin-top:6px}
@@ -281,12 +286,12 @@ h3{font-weight:500;font-size:clamp(1.7rem,min(3vw,5vh),2.3rem);line-height:1.05;
 @media (prefers-reduced-motion:reduce){.hint path{stroke-dashoffset:0}}
 
 /* ---- header, right side: where you are, the docs, the source ---- */
-.nav{position:fixed;z-index:6;top:calc(10px + env(safe-area-inset-top,0px));right:max(24px,calc((100vw - 1120px) / 2));display:flex;align-items:center;gap:18px;min-height:44px}
-.nav a{display:inline-flex;align-items:center;gap:4px;min-height:44px;font-size:13.5px;color:var(--ink-2);text-decoration:none;transition:color .2s var(--ease)}
-.nav a:hover{color:var(--ink)}
-.nav a span{transition:transform .2s var(--ease)}
-.nav a:hover span{transform:translate(2px,-2px)}
-@media (max-width:820px){.nav{top:calc(6px + env(safe-area-inset-top,0px));right:clamp(20px,6vw,30px);gap:14px}.nav .pill,.nav a.docs{display:none}}
+.topnav{position:fixed;z-index:6;top:calc(10px + env(safe-area-inset-top,0px));right:max(24px,calc((100vw - 1120px) / 2));display:flex;align-items:center;gap:18px;min-height:44px}
+.topnav a{display:inline-flex;align-items:center;gap:4px;min-height:44px;font-size:13.5px;color:var(--ink-2);text-decoration:none;transition:color .2s var(--ease)}
+.topnav a:hover{color:var(--ink)}
+.topnav a span{transition:transform .2s var(--ease)}
+.topnav a:hover span{transform:translate(2px,-2px)}
+@media (max-width:820px){.topnav{top:calc(6px + env(safe-area-inset-top,0px));right:clamp(20px,6vw,30px);gap:14px}.topnav .pill,.topnav a.docs{display:none}}
 
 /* ---- landing: the three promises ---- */
 
@@ -305,3 +310,6 @@ h3{font-weight:500;font-size:clamp(1.7rem,min(3vw,5vh),2.3rem);line-height:1.05;
 .row .link,.row.nav .link,.footer .link,.seal,.downloads a,.toast .link{min-height:24px;display:inline-flex;align-items:center}
 .chip{padding-top:2px;padding-bottom:2px}
 .small .link.q{min-height:24px;display:inline-flex;align-items:center;vertical-align:middle}
+
+/* evidence and commands wrap long lines (URLs, keys) instead of scrolling sideways */
+.ev,.term{white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:visible}

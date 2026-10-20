@@ -10,4 +10,4 @@ ZcashFlight has no runtime dependencies. It bundles the following third-party ma
 
 Development-only tools (`typescript`, `@types/node`) are not shipped; see `package-lock.json`.
 
-The illustrations in `ui/img/` and the walker in `brand/walker/` are original project artwork by the ZcashFlight author.
+The Z mark (`brand/logo/`, `ui/brand/`), the illustrations in `ui/img/` and the walker in `brand/walker/` are original project artwork by the ZcashFlight author.

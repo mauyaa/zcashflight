@@ -56,29 +56,6 @@
           ]
         },
         {
-          "ruleId": "ZF-A",
-          "level": "error",
-          "message": {
-            "text": "Memo sent to error monitoring (errors.example.io). Scrub error reports before they leave the app."
-          },
-          "partialFingerprints": {
-            "zcashflight": "7fc2230a05"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "server.ts"
-                },
-                "region": {
-                  "startLine": 88,
-                  "startColumn": 7
-                }
-              }
-            }
-          ]
-        },
-        {
           "ruleId": "ZF-B",
           "level": "error",
           "message": {
@@ -96,6 +73,29 @@
                 "region": {
                   "startLine": 9,
                   "startColumn": 14
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "ZF-A",
+          "level": "error",
+          "message": {
+            "text": "Memo sent to error monitoring (errors.example.io). Scrub error reports before they leave the app."
+          },
+          "partialFingerprints": {
+            "zcashflight": "7fc2230a05"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "server.ts"
+                },
+                "region": {
+                  "startLine": 88,
+                  "startColumn": 7
                 }
               }
             }

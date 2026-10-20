@@ -2,13 +2,13 @@
 
 **5 privacy leaks found.**
 
-Run 1 · testnet · 19 Oct 2026, 00:58 UTC · fingerprint `2aa8 f30c` · 14 requests, 5 log lines, 7 kept off the network
+Run 1 · testnet · 20 Oct 2026, 12:34 UTC · fingerprint `2aa8 f30c` · 14 requests, 5 log lines, 7 kept off the network
 
 | | Finding | Rule | Where | Code |
 |---|---|---|---|---|
 | 🟧 high | Address and amount sent to analytics | A · Sensitive data in requests | `analytics.example.com` | `server.ts:56` |
-| 🟧 high | Memo sent to error monitoring | A · Sensitive data in requests | `errors.example.io` | `server.ts:88` |
 | 🟧 high | Transaction ID written to a log | B · Sensitive data in logs | `logs/server.log` | `server/broadcast.ts:9` |
+| 🟧 high | Memo sent to error monitoring | A · Sensitive data in requests | `errors.example.io` | `server.ts:88` |
 | 🟨 medium | Checkout activity revealed to a price API | D · Third-party data flows | `api.coingecko.com` | `lib/prices.ts:5` |
 | 🟨 medium | Payment sent to a transparent address | C · Transaction type and public exposure | `127.0.0.1:18232` | `lib/refund.ts:9` |
 
@@ -33,6 +33,26 @@ body.props.amount: ••••   (amount, by field name)
 
 </details>
 
+<details><summary><b>Transaction ID written to a log</b> · high · <code>server/broadcast.ts:9</code></summary>
+
+Scenario **refunds**, 1 occurrence. Evidence is masked.
+
+```
+2026-10-20T12:34:27.209Z DEBUG broadcast ok txid=b78c…1ab8
+log: b78c…1ab8   (txid, by field name)
+```
+
+**Fix:** Log what happened, not who or how much.
+- Stop interpolating `log` into log lines.
+- Log a locally generated correlation ID; keep the txid ↔ ID mapping out of logs.
+- Add a logger redaction rule for Zcash identifiers as a second line of defence.
+
+**Read:** [Zcash privacy recommendations](https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html)
+
+**Reproduce:** `zcashflight run --scenario refunds` → `Scenario step: POST /api/checkout` → `Observed in logs/server.log`
+
+</details>
+
 <details><summary><b>Memo sent to error monitoring</b> · high · <code>server.ts:88</code></summary>
 
 Scenario **errors**, 1 occurrence. Evidence is masked.
@@ -50,26 +70,6 @@ body.extra.memo: •••• (26 chars)   (memo, by field name)
 **Read:** [Zcash privacy recommendations](https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html)
 
 **Reproduce:** `zcashflight run --scenario errors` → `Scenario step: POST /api/checkout` → `Observed: POST https://errors.example.io/api/42/store/`
-
-</details>
-
-<details><summary><b>Transaction ID written to a log</b> · high · <code>server/broadcast.ts:9</code></summary>
-
-Scenario **errors**, 1 occurrence. Evidence is masked.
-
-```
-2026-10-19T00:58:35.134Z DEBUG broadcast ok txid=b78c…1ab8
-log: b78c…1ab8   (txid, by field name)
-```
-
-**Fix:** Log what happened, not who or how much.
-- Stop interpolating `log` into log lines.
-- Log a locally generated correlation ID; keep the txid ↔ ID mapping out of logs.
-- Add a logger redaction rule for Zcash identifiers as a second line of defence.
-
-**Read:** [Zcash privacy recommendations](https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html)
-
-**Reproduce:** `zcashflight run --scenario errors` → `Scenario step: POST /api/checkout` → `Observed in logs/server.log`
 
 </details>
 

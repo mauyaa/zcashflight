@@ -1,6 +1,7 @@
 // Layout audit for the dashboard, run inside the page (recorded mode).
 // Walks every moment and state and reports, per screen: hidden overflow, horizontal scroll,
-// interactive targets under 24px (WCAG 2.2 AA), and content running under the footer.
+// interactive targets under 24px (WCAG 2.2 AA), content running under the footer,
+// the logo touching the header links, and the back/next row overlapping a title.
 // Usage: paste into the browser console, or evaluate with any page-automation tool; resolves to a report.
 window.__audit = (async () => {
   const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -16,8 +17,13 @@ window.__audit = (async () => {
     const tr = text.getBoundingClientRect();
     if (label.startsWith('0') && innerHeight >= 700 && hidden > 2) issues.push(`the promise must fit, but scrolls ${hidden}px`);
     if (hidden > 2 && !text.classList.contains('more') && text.scrollTop === 0) issues.push(`scrolls ${hidden}px with no visible cue`);
-    const primary = text.querySelector('.btn.primary');
-    
+    const wr = $('.word').getBoundingClientRect(), nr = $('.topnav').getBoundingClientRect();
+    if (nr.width && wr.right > nr.left - 8) issues.push(`the logo runs into the header links (${Math.round(wr.right - nr.left)}px)`);
+    const nav = text.querySelector('.row.nav'), head = text.querySelector('h1, h2, h3');
+    if (nav && head) {
+      const a = nav.getBoundingClientRect(), b = head.getBoundingClientRect();
+      if (getComputedStyle(nav).position !== 'static' || (a.bottom > b.top + 1 && a.top < b.bottom - 1 && a.right > b.left && a.left < b.right)) issues.push('the back/next row overlaps the title');
+    }
     if (innerWidth < 1024 && tr.bottom > foot.top + 1) issues.push(`text box runs ${Math.round(tr.bottom - foot.top)}px under the footer`);
     const small = [...document.querySelectorAll('.st.here button, .st.here a, .st.here input, .bar button, .bar a, .footer button, .footer [role=button]')]
       .filter(e => e.offsetParent !== null || e.closest('svg'))

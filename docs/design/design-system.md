@@ -35,7 +35,11 @@ Nothing is heavier than weight 600.
 
 ## Brand
 
-The wordmark is set in Michroma (SIL OFL) and converted to outlines by [`scripts/wordmark.py`](../../scripts/wordmark.py), which also writes the favicon (`ui/brand/icon.svg`) and the copy embedded in HTML reports (`src/brand.ts`). In the header its left edge sits on the content keyline at every width (`max(24px, (100vw − 1120px) / 2)`, `clamp(20px, 6vw, 30px)` below 820 px). It is 16 px tall on desktop and 13 px on narrow screens, inside a 44 px tap target that returns to the start. Docs and Source links sit on the opposite keyline.
+**The Z mark is the project's only logo.** Its master is [`brand/logo/zcashflight-mark.svg`](../../brand/logo/zcashflight-mark.svg) (lime `#c5f48d`), traced from the original artwork. [`scripts/brand.py`](../../scripts/brand.py) builds everything else from it: the favicon and app icon (the mark on a navy rounded square, `ui/brand/icon.svg`, `brand/logo/zcashflight-icon.svg`), the copy used in HTML reports (`src/brand.ts`), and the ZCASHFLIGHT name set in Michroma (SIL OFL) as outlines. `ui/brand/apple-touch-icon.png` and the 1200 × 630 share image `ui/brand/og.png` are rendered from those SVGs.
+
+The header lockup is the mark, then the name: mark 22 px and name 16 px tall with a 12 px gap on desktop; 17 / 13 px with a 9 px gap at 820 px and below; 15 / 12 px with an 8 px gap at 360 px and below. The mark's left edge sits on the content keyline at every width (`max(24px, (100vw − 1120px) / 2)`, `clamp(20px, 6vw, 30px)` below 820 px), inside a 44 px tap target that returns to the start. Docs and Source links sit on the opposite keyline; below 820 px only Source shows, and the docs stay one tap away through Get started.
+
+Don't recolour, outline, rotate or stretch the mark, and don't place it on lime.
 
 The three circles hold the project's own illustrations: locks (the promise), gears (listening) and a paper plane (the report). They are cropped square, served from `ui/img/` and shown at full clarity, with no filter or overlay.
 

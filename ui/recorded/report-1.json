@@ -1,9 +1,9 @@
 {
   "version": 1,
   "n": 1,
-  "id": "2ba6162ca3c3",
-  "startedAt": "2026-10-19T00:58:34.480Z",
-  "finishedAt": "2026-10-19T00:58:36.165Z",
+  "id": "1147ed6149be",
+  "startedAt": "2026-10-20T12:34:26.748Z",
+  "finishedAt": "2026-10-20T12:34:28.144Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -27,18 +27,18 @@
           "request": "POST /api/checkout",
           "status": 201,
           "ok": true,
-          "ms": 74
+          "ms": 47
         },
         {
           "request": "POST /api/orders/:order/paid",
           "status": 200,
           "ok": true,
-          "ms": 29
+          "ms": 36
         }
       ],
       "window": [
-        1792371515033,
-        1792371515136
+        1792499667128,
+        1792499667211
       ]
     },
     {
@@ -50,18 +50,18 @@
           "request": "POST /api/checkout",
           "status": 201,
           "ok": true,
-          "ms": 27
+          "ms": 30
         },
         {
           "request": "POST /api/orders/:order/fail",
           "status": 200,
           "ok": true,
-          "ms": 41
+          "ms": 44
         }
       ],
       "window": [
-        1792371515137,
-        1792371515205
+        1792499667211,
+        1792499667285
       ]
     },
     {
@@ -73,18 +73,18 @@
           "request": "POST /api/checkout",
           "status": 201,
           "ok": true,
-          "ms": 18
+          "ms": 32
         },
         {
           "request": "GET /api/orders/:order?simulate=timeout",
           "status": 504,
           "ok": true,
-          "ms": 15
+          "ms": 14
         }
       ],
       "window": [
-        1792371515205,
-        1792371515238
+        1792499667285,
+        1792499667331
       ]
     }
   ],
@@ -125,7 +125,7 @@
           "proof": "checksum",
           "path": "body.props.recipient",
           "masked": "utest1dh…lcr2",
-          "ref": "7d9b72df"
+          "ref": "5893c983"
         },
         {
           "cls": "amount",
@@ -133,7 +133,7 @@
           "proof": "context",
           "path": "body.props.amount",
           "masked": "••••",
-          "ref": "1c8adca9"
+          "ref": "1caa0587"
         }
       ],
       "sample": "POST https://analytics.example.com/v1/track",
@@ -188,6 +188,63 @@
       ]
     },
     {
+      "id": "c84f713d32",
+      "rule": "B",
+      "ruleName": "Sensitive data in logs",
+      "severity": "high",
+      "title": "Transaction ID written to a log",
+      "classes": [
+        "txid"
+      ],
+      "destination": "logs/server.log",
+      "scenario": "refunds",
+      "step": "POST /api/checkout",
+      "occurrences": 1,
+      "firstSeq": 12,
+      "evidence": [
+        {
+          "cls": "txid",
+          "kind": "txid",
+          "proof": "context",
+          "path": "log",
+          "masked": "b78c…1ab8",
+          "ref": "25d55c46"
+        }
+      ],
+      "sample": "2026-10-20T12:34:27.209Z DEBUG broadcast ok txid=b78c…1ab8",
+      "at": {
+        "file": "server/broadcast.ts",
+        "line": 9,
+        "col": 14
+      },
+      "stack": [
+        {
+          "file": "server/broadcast.ts",
+          "line": 9,
+          "col": 14
+        }
+      ],
+      "remediation": {
+        "summary": "Log what happened, not who or how much.",
+        "steps": [
+          "Stop interpolating `log` into log lines.",
+          "Log a locally generated correlation ID; keep the txid ↔ ID mapping out of logs.",
+          "Add a logger redaction rule for Zcash identifiers as a second line of defence."
+        ],
+        "refs": [
+          {
+            "label": "Zcash privacy recommendations",
+            "url": "https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html"
+          }
+        ]
+      },
+      "repro": [
+        "zcashflight run --scenario refunds",
+        "Scenario step: POST /api/checkout",
+        "Observed in logs/server.log"
+      ]
+    },
+    {
       "id": "7fc2230a05",
       "rule": "A",
       "ruleName": "Sensitive data in requests",
@@ -200,7 +257,7 @@
       "scenario": "errors",
       "step": "POST /api/checkout",
       "occurrences": 1,
-      "firstSeq": 16,
+      "firstSeq": 18,
       "evidence": [
         {
           "cls": "memo",
@@ -208,7 +265,7 @@
           "proof": "context",
           "path": "body.extra.memo",
           "masked": "•••• (26 chars)",
-          "ref": "6d8848ba"
+          "ref": "84d672c0"
         }
       ],
       "sample": "POST https://errors.example.io/api/42/store/",
@@ -261,63 +318,6 @@
         "zcashflight run --scenario errors",
         "Scenario step: POST /api/checkout",
         "Observed: POST https://errors.example.io/api/42/store/"
-      ]
-    },
-    {
-      "id": "c84f713d32",
-      "rule": "B",
-      "ruleName": "Sensitive data in logs",
-      "severity": "high",
-      "title": "Transaction ID written to a log",
-      "classes": [
-        "txid"
-      ],
-      "destination": "logs/server.log",
-      "scenario": "errors",
-      "step": "POST /api/checkout",
-      "occurrences": 1,
-      "firstSeq": 17,
-      "evidence": [
-        {
-          "cls": "txid",
-          "kind": "txid",
-          "proof": "context",
-          "path": "log",
-          "masked": "b78c…1ab8",
-          "ref": "2ab5de5a"
-        }
-      ],
-      "sample": "2026-10-19T00:58:35.134Z DEBUG broadcast ok txid=b78c…1ab8",
-      "at": {
-        "file": "server/broadcast.ts",
-        "line": 9,
-        "col": 14
-      },
-      "stack": [
-        {
-          "file": "server/broadcast.ts",
-          "line": 9,
-          "col": 14
-        }
-      ],
-      "remediation": {
-        "summary": "Log what happened, not who or how much.",
-        "steps": [
-          "Stop interpolating `log` into log lines.",
-          "Log a locally generated correlation ID; keep the txid ↔ ID mapping out of logs.",
-          "Add a logger redaction rule for Zcash identifiers as a second line of defence."
-        ],
-        "refs": [
-          {
-            "label": "Zcash privacy recommendations",
-            "url": "https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html"
-          }
-        ]
-      },
-      "repro": [
-        "zcashflight run --scenario errors",
-        "Scenario step: POST /api/checkout",
-        "Observed in logs/server.log"
       ]
     },
     {
@@ -392,7 +392,7 @@
       "scenario": "refunds",
       "step": "POST /api/checkout",
       "occurrences": 1,
-      "firstSeq": 11,
+      "firstSeq": 10,
       "evidence": [
         {
           "cls": "address",
@@ -402,7 +402,7 @@
           "proof": "checksum",
           "path": "body.params[1][0].address",
           "masked": "tmUS…Wzhs",
-          "ref": "b40b9ae1"
+          "ref": "9150c442"
         }
       ],
       "sample": "POST http://127.0.0.1:18232/",

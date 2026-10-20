@@ -13,3 +13,4 @@ examples/zecshop/data/
 *.pem
 *.key
 ui/ui-audit.js
+__pycache__/

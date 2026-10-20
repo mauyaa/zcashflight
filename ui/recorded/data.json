@@ -1,5 +1,5 @@
 {
- "recordedAt": "2026-10-19T00:58:43.908Z",
+ "recordedAt": "2026-10-20T12:34:34.879Z",
  "project": {
   "name": "ZecShop",
   "path": "examples/zecshop",
@@ -69,9 +69,9 @@
  "seeded": {
   "version": 1,
   "n": 1,
-  "id": "2ba6162ca3c3",
-  "startedAt": "2026-10-19T00:58:34.480Z",
-  "finishedAt": "2026-10-19T00:58:36.165Z",
+  "id": "1147ed6149be",
+  "startedAt": "2026-10-20T12:34:26.748Z",
+  "finishedAt": "2026-10-20T12:34:28.144Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -95,18 +95,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 74
+      "ms": 47
      },
      {
       "request": "POST /api/orders/:order/paid",
       "status": 200,
       "ok": true,
-      "ms": 29
+      "ms": 36
      }
     ],
     "window": [
-     1792371515033,
-     1792371515136
+     1792499667128,
+     1792499667211
     ]
    },
    {
@@ -118,18 +118,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 27
+      "ms": 30
      },
      {
       "request": "POST /api/orders/:order/fail",
       "status": 200,
       "ok": true,
-      "ms": 41
+      "ms": 44
      }
     ],
     "window": [
-     1792371515137,
-     1792371515205
+     1792499667211,
+     1792499667285
     ]
    },
    {
@@ -141,18 +141,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 18
+      "ms": 32
      },
      {
       "request": "GET /api/orders/:order?simulate=timeout",
       "status": 504,
       "ok": true,
-      "ms": 15
+      "ms": 14
      }
     ],
     "window": [
-     1792371515205,
-     1792371515238
+     1792499667285,
+     1792499667331
     ]
    }
   ],
@@ -193,7 +193,7 @@
       "proof": "checksum",
       "path": "body.props.recipient",
       "masked": "utest1dh…lcr2",
-      "ref": "7d9b72df"
+      "ref": "5893c983"
      },
      {
       "cls": "amount",
@@ -201,7 +201,7 @@
       "proof": "context",
       "path": "body.props.amount",
       "masked": "••••",
-      "ref": "1c8adca9"
+      "ref": "1caa0587"
      }
     ],
     "sample": "POST https://analytics.example.com/v1/track",
@@ -256,6 +256,63 @@
     ]
    },
    {
+    "id": "c84f713d32",
+    "rule": "B",
+    "ruleName": "Sensitive data in logs",
+    "severity": "high",
+    "title": "Transaction ID written to a log",
+    "classes": [
+     "txid"
+    ],
+    "destination": "logs/server.log",
+    "scenario": "refunds",
+    "step": "POST /api/checkout",
+    "occurrences": 1,
+    "firstSeq": 12,
+    "evidence": [
+     {
+      "cls": "txid",
+      "kind": "txid",
+      "proof": "context",
+      "path": "log",
+      "masked": "b78c…1ab8",
+      "ref": "25d55c46"
+     }
+    ],
+    "sample": "2026-10-20T12:34:27.209Z DEBUG broadcast ok txid=b78c…1ab8",
+    "at": {
+     "file": "server/broadcast.ts",
+     "line": 9,
+     "col": 14
+    },
+    "stack": [
+     {
+      "file": "server/broadcast.ts",
+      "line": 9,
+      "col": 14
+     }
+    ],
+    "remediation": {
+     "summary": "Log what happened, not who or how much.",
+     "steps": [
+      "Stop interpolating `log` into log lines.",
+      "Log a locally generated correlation ID; keep the txid ↔ ID mapping out of logs.",
+      "Add a logger redaction rule for Zcash identifiers as a second line of defence."
+     ],
+     "refs": [
+      {
+       "label": "Zcash privacy recommendations",
+       "url": "https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html"
+      }
+     ]
+    },
+    "repro": [
+     "zcashflight run --scenario refunds",
+     "Scenario step: POST /api/checkout",
+     "Observed in logs/server.log"
+    ]
+   },
+   {
     "id": "7fc2230a05",
     "rule": "A",
     "ruleName": "Sensitive data in requests",
@@ -268,7 +325,7 @@
     "scenario": "errors",
     "step": "POST /api/checkout",
     "occurrences": 1,
-    "firstSeq": 16,
+    "firstSeq": 18,
     "evidence": [
      {
       "cls": "memo",
@@ -276,7 +333,7 @@
       "proof": "context",
       "path": "body.extra.memo",
       "masked": "•••• (26 chars)",
-      "ref": "6d8848ba"
+      "ref": "84d672c0"
      }
     ],
     "sample": "POST https://errors.example.io/api/42/store/",
@@ -329,63 +386,6 @@
      "zcashflight run --scenario errors",
      "Scenario step: POST /api/checkout",
      "Observed: POST https://errors.example.io/api/42/store/"
-    ]
-   },
-   {
-    "id": "c84f713d32",
-    "rule": "B",
-    "ruleName": "Sensitive data in logs",
-    "severity": "high",
-    "title": "Transaction ID written to a log",
-    "classes": [
-     "txid"
-    ],
-    "destination": "logs/server.log",
-    "scenario": "errors",
-    "step": "POST /api/checkout",
-    "occurrences": 1,
-    "firstSeq": 17,
-    "evidence": [
-     {
-      "cls": "txid",
-      "kind": "txid",
-      "proof": "context",
-      "path": "log",
-      "masked": "b78c…1ab8",
-      "ref": "2ab5de5a"
-     }
-    ],
-    "sample": "2026-10-19T00:58:35.134Z DEBUG broadcast ok txid=b78c…1ab8",
-    "at": {
-     "file": "server/broadcast.ts",
-     "line": 9,
-     "col": 14
-    },
-    "stack": [
-     {
-      "file": "server/broadcast.ts",
-      "line": 9,
-      "col": 14
-     }
-    ],
-    "remediation": {
-     "summary": "Log what happened, not who or how much.",
-     "steps": [
-      "Stop interpolating `log` into log lines.",
-      "Log a locally generated correlation ID; keep the txid ↔ ID mapping out of logs.",
-      "Add a logger redaction rule for Zcash identifiers as a second line of defence."
-     ],
-     "refs": [
-      {
-       "label": "Zcash privacy recommendations",
-       "url": "https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html"
-      }
-     ]
-    },
-    "repro": [
-     "zcashflight run --scenario errors",
-     "Scenario step: POST /api/checkout",
-     "Observed in logs/server.log"
     ]
    },
    {
@@ -460,7 +460,7 @@
     "scenario": "refunds",
     "step": "POST /api/checkout",
     "occurrences": 1,
-    "firstSeq": 11,
+    "firstSeq": 10,
     "evidence": [
      {
       "cls": "address",
@@ -470,7 +470,7 @@
       "proof": "checksum",
       "path": "body.params[1][0].address",
       "masked": "tmUS…Wzhs",
-      "ref": "b40b9ae1"
+      "ref": "9150c442"
      }
     ],
     "sample": "POST http://127.0.0.1:18232/",
@@ -558,7 +558,7 @@
  },
  "progress": [
   {
-   "ms": 12,
+   "ms": 9,
    "e": {
     "type": "phase",
     "phase": "starting",
@@ -566,7 +566,7 @@
    }
   },
   {
-   "ms": 142,
+   "ms": 136,
    "e": {
     "type": "captured",
     "requests": 0,
@@ -574,7 +574,21 @@
    }
   },
   {
-   "ms": 516,
+   "ms": 388,
+   "e": {
+    "type": "phase",
+    "phase": "ready"
+   }
+  },
+  {
+   "ms": 388,
+   "e": {
+    "type": "phase",
+    "phase": "scenarios"
+   }
+  },
+  {
+   "ms": 391,
    "e": {
     "type": "captured",
     "requests": 0,
@@ -582,21 +596,7 @@
    }
   },
   {
-   "ms": 564,
-   "e": {
-    "type": "phase",
-    "phase": "ready"
-   }
-  },
-  {
-   "ms": 564,
-   "e": {
-    "type": "phase",
-    "phase": "scenarios"
-   }
-  },
-  {
-   "ms": 638,
+   "ms": 435,
    "e": {
     "type": "step",
     "scenario": "checkout",
@@ -606,15 +606,7 @@
    }
   },
   {
-   "ms": 644,
-   "e": {
-    "type": "captured",
-    "requests": 3,
-    "logs": 2
-   }
-  },
-  {
-   "ms": 667,
+   "ms": 471,
    "e": {
     "type": "step",
     "scenario": "checkout",
@@ -624,7 +616,7 @@
    }
   },
   {
-   "ms": 695,
+   "ms": 501,
    "e": {
     "type": "step",
     "scenario": "refunds",
@@ -634,7 +626,15 @@
    }
   },
   {
-   "ms": 736,
+   "ms": 529,
+   "e": {
+    "type": "captured",
+    "requests": 10,
+    "logs": 4
+   }
+  },
+  {
+   "ms": 545,
    "e": {
     "type": "step",
     "scenario": "refunds",
@@ -644,7 +644,7 @@
    }
   },
   {
-   "ms": 754,
+   "ms": 577,
    "e": {
     "type": "step",
     "scenario": "errors",
@@ -654,15 +654,7 @@
    }
   },
   {
-   "ms": 767,
-   "e": {
-    "type": "captured",
-    "requests": 14,
-    "logs": 5
-   }
-  },
-  {
-   "ms": 769,
+   "ms": 591,
    "e": {
     "type": "step",
     "scenario": "errors",
@@ -672,7 +664,7 @@
    }
   },
   {
-   "ms": 888,
+   "ms": 651,
    "e": {
     "type": "captured",
     "requests": 14,
@@ -680,14 +672,14 @@
    }
   },
   {
-   "ms": 1651,
+   "ms": 1379,
    "e": {
     "type": "phase",
     "phase": "evaluating"
    }
   },
   {
-   "ms": 1698,
+   "ms": 1405,
    "e": {
     "type": "phase",
     "phase": "done"
@@ -697,9 +689,9 @@
  "fixed": {
   "version": 1,
   "n": 2,
-  "id": "92a6e44ff5db",
-  "startedAt": "2026-10-19T00:58:36.391Z",
-  "finishedAt": "2026-10-19T00:58:37.856Z",
+  "id": "09715dbd7c12",
+  "startedAt": "2026-10-20T12:34:28.291Z",
+  "finishedAt": "2026-10-20T12:34:29.482Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -723,18 +715,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 59
+      "ms": 39
      },
      {
       "request": "POST /api/orders/:order/paid",
       "status": 200,
       "ok": true,
-      "ms": 28
+      "ms": 38
      }
     ],
     "window": [
-     1792371516891,
-     1792371516978
+     1792499668626,
+     1792499668703
     ]
    },
    {
@@ -746,18 +738,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 33
+      "ms": 26
      },
      {
       "request": "POST /api/orders/:order/fail",
       "status": 200,
       "ok": true,
-      "ms": 44
+      "ms": 45
      }
     ],
     "window": [
-     1792371516978,
-     1792371517055
+     1792499668703,
+     1792499668774
     ]
    },
    {
@@ -769,18 +761,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 33
+      "ms": 32
      },
      {
       "request": "GET /api/orders/:order?simulate=timeout",
       "status": 504,
       "ok": true,
-      "ms": 5
+      "ms": 14
      }
     ],
     "window": [
-     1792371517055,
-     1792371517093
+     1792499668774,
+     1792499668820
     ]
    }
   ],
@@ -822,7 +814,7 @@
    }
   },
   {
-   "ms": 132,
+   "ms": 125,
    "e": {
     "type": "captured",
     "requests": 0,
@@ -830,29 +822,29 @@
    }
   },
   {
-   "ms": 502,
+   "ms": 337,
    "e": {
     "type": "phase",
     "phase": "ready"
    }
   },
   {
-   "ms": 502,
+   "ms": 337,
    "e": {
     "type": "phase",
     "phase": "scenarios"
    }
   },
   {
-   "ms": 505,
+   "ms": 375,
    "e": {
     "type": "captured",
-    "requests": 0,
-    "logs": 1
+    "requests": 2,
+    "logs": 2
    }
   },
   {
-   "ms": 561,
+   "ms": 376,
    "e": {
     "type": "step",
     "scenario": "checkout",
@@ -862,7 +854,7 @@
    }
   },
   {
-   "ms": 589,
+   "ms": 414,
    "e": {
     "type": "step",
     "scenario": "checkout",
@@ -872,7 +864,7 @@
    }
   },
   {
-   "ms": 622,
+   "ms": 440,
    "e": {
     "type": "step",
     "scenario": "refunds",
@@ -882,15 +874,7 @@
    }
   },
   {
-   "ms": 633,
-   "e": {
-    "type": "captured",
-    "requests": 6,
-    "logs": 4
-   }
-  },
-  {
-   "ms": 666,
+   "ms": 485,
    "e": {
     "type": "step",
     "scenario": "refunds",
@@ -900,7 +884,15 @@
    }
   },
   {
-   "ms": 699,
+   "ms": 499,
+   "e": {
+    "type": "captured",
+    "requests": 8,
+    "logs": 4
+   }
+  },
+  {
+   "ms": 517,
    "e": {
     "type": "step",
     "scenario": "errors",
@@ -910,7 +902,7 @@
    }
   },
   {
-   "ms": 704,
+   "ms": 531,
    "e": {
     "type": "step",
     "scenario": "errors",
@@ -920,7 +912,7 @@
    }
   },
   {
-   "ms": 757,
+   "ms": 621,
    "e": {
     "type": "captured",
     "requests": 11,
@@ -928,14 +920,14 @@
    }
   },
   {
-   "ms": 1441,
+   "ms": 1175,
    "e": {
     "type": "phase",
     "phase": "evaluating"
    }
   },
   {
-   "ms": 1470,
+   "ms": 1195,
    "e": {
     "type": "phase",
     "phase": "done"
@@ -970,7 +962,7 @@
       "proof": "checksum",
       "path": "body.props.recipient",
       "masked": "utest1dh…lcr2",
-      "ref": "7d9b72df"
+      "ref": "5893c983"
      },
      {
       "cls": "amount",
@@ -978,7 +970,7 @@
       "proof": "context",
       "path": "body.props.amount",
       "masked": "••••",
-      "ref": "1c8adca9"
+      "ref": "1caa0587"
      }
     ],
     "sample": "POST https://analytics.example.com/v1/track",
@@ -1033,6 +1025,63 @@
     ]
    },
    {
+    "id": "c84f713d32",
+    "rule": "B",
+    "ruleName": "Sensitive data in logs",
+    "severity": "high",
+    "title": "Transaction ID written to a log",
+    "classes": [
+     "txid"
+    ],
+    "destination": "logs/server.log",
+    "scenario": "refunds",
+    "step": "POST /api/checkout",
+    "occurrences": 1,
+    "firstSeq": 12,
+    "evidence": [
+     {
+      "cls": "txid",
+      "kind": "txid",
+      "proof": "context",
+      "path": "log",
+      "masked": "b78c…1ab8",
+      "ref": "25d55c46"
+     }
+    ],
+    "sample": "2026-10-20T12:34:27.209Z DEBUG broadcast ok txid=b78c…1ab8",
+    "at": {
+     "file": "server/broadcast.ts",
+     "line": 9,
+     "col": 14
+    },
+    "stack": [
+     {
+      "file": "server/broadcast.ts",
+      "line": 9,
+      "col": 14
+     }
+    ],
+    "remediation": {
+     "summary": "Log what happened, not who or how much.",
+     "steps": [
+      "Stop interpolating `log` into log lines.",
+      "Log a locally generated correlation ID; keep the txid ↔ ID mapping out of logs.",
+      "Add a logger redaction rule for Zcash identifiers as a second line of defence."
+     ],
+     "refs": [
+      {
+       "label": "Zcash privacy recommendations",
+       "url": "https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html"
+      }
+     ]
+    },
+    "repro": [
+     "zcashflight run --scenario refunds",
+     "Scenario step: POST /api/checkout",
+     "Observed in logs/server.log"
+    ]
+   },
+   {
     "id": "7fc2230a05",
     "rule": "A",
     "ruleName": "Sensitive data in requests",
@@ -1045,7 +1094,7 @@
     "scenario": "errors",
     "step": "POST /api/checkout",
     "occurrences": 1,
-    "firstSeq": 16,
+    "firstSeq": 18,
     "evidence": [
      {
       "cls": "memo",
@@ -1053,7 +1102,7 @@
       "proof": "context",
       "path": "body.extra.memo",
       "masked": "•••• (26 chars)",
-      "ref": "6d8848ba"
+      "ref": "84d672c0"
      }
     ],
     "sample": "POST https://errors.example.io/api/42/store/",
@@ -1106,63 +1155,6 @@
      "zcashflight run --scenario errors",
      "Scenario step: POST /api/checkout",
      "Observed: POST https://errors.example.io/api/42/store/"
-    ]
-   },
-   {
-    "id": "c84f713d32",
-    "rule": "B",
-    "ruleName": "Sensitive data in logs",
-    "severity": "high",
-    "title": "Transaction ID written to a log",
-    "classes": [
-     "txid"
-    ],
-    "destination": "logs/server.log",
-    "scenario": "errors",
-    "step": "POST /api/checkout",
-    "occurrences": 1,
-    "firstSeq": 17,
-    "evidence": [
-     {
-      "cls": "txid",
-      "kind": "txid",
-      "proof": "context",
-      "path": "log",
-      "masked": "b78c…1ab8",
-      "ref": "2ab5de5a"
-     }
-    ],
-    "sample": "2026-10-19T00:58:35.134Z DEBUG broadcast ok txid=b78c…1ab8",
-    "at": {
-     "file": "server/broadcast.ts",
-     "line": 9,
-     "col": 14
-    },
-    "stack": [
-     {
-      "file": "server/broadcast.ts",
-      "line": 9,
-      "col": 14
-     }
-    ],
-    "remediation": {
-     "summary": "Log what happened, not who or how much.",
-     "steps": [
-      "Stop interpolating `log` into log lines.",
-      "Log a locally generated correlation ID; keep the txid ↔ ID mapping out of logs.",
-      "Add a logger redaction rule for Zcash identifiers as a second line of defence."
-     ],
-     "refs": [
-      {
-       "label": "Zcash privacy recommendations",
-       "url": "https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html"
-      }
-     ]
-    },
-    "repro": [
-     "zcashflight run --scenario errors",
-     "Scenario step: POST /api/checkout",
-     "Observed in logs/server.log"
     ]
    },
    {
@@ -1237,7 +1229,7 @@
     "scenario": "refunds",
     "step": "POST /api/checkout",
     "occurrences": 1,
-    "firstSeq": 11,
+    "firstSeq": 10,
     "evidence": [
      {
       "cls": "address",
@@ -1247,7 +1239,7 @@
       "proof": "checksum",
       "path": "body.params[1][0].address",
       "masked": "tmUS…Wzhs",
-      "ref": "b40b9ae1"
+      "ref": "9150c442"
      }
     ],
     "sample": "POST http://127.0.0.1:18232/",
@@ -1324,9 +1316,9 @@
  "regressed": {
   "version": 1,
   "n": 3,
-  "id": "affc7cb42273",
-  "startedAt": "2026-10-19T00:58:37.864Z",
-  "finishedAt": "2026-10-19T00:58:39.326Z",
+  "id": "ea430d963684",
+  "startedAt": "2026-10-20T12:34:29.489Z",
+  "finishedAt": "2026-10-20T12:34:30.642Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -1350,7 +1342,7 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 60
+      "ms": 36
      },
      {
       "request": "POST /api/orders/:order/paid",
@@ -1360,8 +1352,8 @@
      }
     ],
     "window": [
-     1792371518367,
-     1792371518456
+     1792499669824,
+     1792499669889
     ]
    },
    {
@@ -1373,18 +1365,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 29
+      "ms": 23
      },
      {
       "request": "POST /api/orders/:order/fail",
       "status": 200,
       "ok": true,
-      "ms": 43
+      "ms": 28
      }
     ],
     "window": [
-     1792371518456,
-     1792371518528
+     1792499669889,
+     1792499669940
     ]
    },
    {
@@ -1402,12 +1394,12 @@
       "request": "GET /api/orders/:order?simulate=timeout",
       "status": 504,
       "ok": true,
-      "ms": 13
+      "ms": 14
      }
     ],
     "window": [
-     1792371518528,
-     1792371518574
+     1792499669940,
+     1792499669987
     ]
    }
   ],
@@ -1436,7 +1428,7 @@
     "scenario": "errors",
     "step": "POST /api/checkout",
     "occurrences": 1,
-    "firstSeq": 15,
+    "firstSeq": 13,
     "evidence": [
      {
       "cls": "memo",
@@ -1444,7 +1436,7 @@
       "proof": "context",
       "path": "body.extra.memo",
       "masked": "•••• (26 chars)",
-      "ref": "904aa9a6"
+      "ref": "4dbe0992"
      }
     ],
     "sample": "POST https://errors.example.io/api/42/store/",
@@ -1533,7 +1525,7 @@
  "history": [
   {
    "n": 1,
-   "finishedAt": "2026-10-19T00:58:36.165Z",
+   "finishedAt": "2026-10-20T12:34:28.144Z",
    "status": "complete",
    "findings": 5,
    "fingerprint": "2aa8 f30c",
@@ -1541,7 +1533,7 @@
   },
   {
    "n": 2,
-   "finishedAt": "2026-10-19T00:58:37.856Z",
+   "finishedAt": "2026-10-20T12:34:29.482Z",
    "status": "complete",
    "findings": 0,
    "fingerprint": "9aa9 1e44",
