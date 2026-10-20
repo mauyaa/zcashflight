@@ -1,19 +1,27 @@
 name: ci
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [22, 24]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 24
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm run typecheck
       - run: npm test
       - run: npm run validate
       # The PRD's success criteria as a gate: the seeded app must fail, the fixed app must pass.
       - run: npm run demo
-      - run: npm run build && node bin/zcashflight.js version
+      # The installed package runs from dist/: build it, then run the demo from the build
+      - run: npm run build && node bin/zcashflight.js version && npm run demo
