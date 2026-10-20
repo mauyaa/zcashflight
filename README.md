@@ -48,21 +48,20 @@ Every finding records the rule, severity, destination, the kind of data and how 
 ## How it works
 
 ```mermaid
-flowchart LR
-  P[zcashflight.yml<br/>protect · destinations · scenarios] --> R[Runner]
-  R -->|starts with --import collector| A[Your app]
-  R -->|drives scenarios over HTTP| A
-  A -->|fetch · http · console| C[Collector<br/>inspect + mask in-process]
+flowchart TB
+  P["zcashflight.yml<br/>protect · destinations · scenarios"] --> R[Runner]
+  R -->|starts it with the collector,<br/>drives the scenarios| A[Your app]
+  A -->|fetch · http · console| C["Collector<br/>inspect + mask in-process"]
   A -->|log files| T[Log tail]
-  A -->|wallet JSON-RPC| W[(Zallet / zcashd<br/>or the bundled mock)]
-  W --- Z[(Zebra regtest)]
-  A -.->|third-party hosts| K[Sinkhole<br/>answered locally]
+  A -->|wallet JSON-RPC| W[("Zallet / zcashd<br/>or the bundled mock")]
+  W --- Z[("Zebra regtest")]
+  A -.->|third-party hosts| K["Sinkhole<br/>answered locally"]
   C --> E[Masked events]
   T --> E
   E --> X[Rules A–D]
-  X --> F[Findings: evidence + fix]
-  F --> S[(.zcashflight/runs)]
-  S --> V[Compare · CI gate · SARIF · HTML · dashboard]
+  X --> F["Findings<br/>evidence · line · fix"]
+  F --> S[(".zcashflight/runs")]
+  S --> V["Compare · CI gate · SARIF · HTML · dashboard"]
 ```
 
 *Text alternative:* the runner reads the policy, starts your app with the collector loaded, and drives its scenarios. The collector inspects every request and console line inside the app process and masks protected values before anything is stored; log files are tailed and masked the same way. Requests to unapproved third parties are answered locally, so test data never reaches them. Deterministic rules turn the masked events into findings, which are saved locally, compared with the previous run of the same app, and turned into a CI exit code, SARIF, HTML or Markdown, or shown in the local dashboard. More: [architecture](docs/architecture/overview.md).
