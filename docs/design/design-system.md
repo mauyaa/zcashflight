@@ -35,11 +35,13 @@ Nothing is heavier than weight 600.
 
 ## Brand
 
-**The Z mark is the project's only logo.** Its master is [`brand/logo/zcashflight-mark.svg`](../../brand/logo/zcashflight-mark.svg) (lime `#c5f48d`), traced from the original artwork. [`scripts/brand.py`](../../scripts/brand.py) builds everything else from it: the favicon and app icon (the mark on a navy rounded square, `ui/brand/icon.svg`, `brand/logo/zcashflight-icon.svg`), the copy used in HTML reports (`src/brand.ts`), and the ZCASHFLIGHT name set in Michroma (SIL OFL) as outlines. `ui/brand/apple-touch-icon.png` and the 1200 × 630 share image `ui/brand/og.png` are rendered from those SVGs.
+**The Z mark is the project's only logo, and it is also the first letter of the name.** The logo reads ZCASHFLIGHT: the lime mark stands in for the Z, followed by CASHFLIGHT set in Michroma (SIL OFL) as outlines. There is never a second, typeset Z. The mark is scaled to the letters' cap height, so its flat top and bottom edges sit on the cap line and the baseline, and it is spaced from the C by exactly the gap Michroma leaves between its own Z and C (377 of 2,048 units), so the word keeps the typeface's rhythm.
 
-The header lockup is the mark, then the name: mark 22 px and name 16 px tall with a 12 px gap on desktop; 17 / 13 px with a 9 px gap at 820 px and below; 15 / 12 px with an 8 px gap at 360 px and below. The mark's left edge sits on the content keyline at every width (`max(24px, (100vw − 1120px) / 2)`, `clamp(20px, 6vw, 30px)` below 820 px), inside a 44 px tap target that returns to the start. Docs and Source links sit on the opposite keyline; below 820 px only Source shows, and the docs stay one tap away through Get started.
+Masters: [`brand/logo/zcashflight-mark.svg`](../../brand/logo/zcashflight-mark.svg) (the mark, lime `#c5f48d`, traced from the original artwork) and the Michroma font. [`scripts/brand.py`](../../scripts/brand.py) builds everything else from them: the logo for dark and light backgrounds (`brand/logo/zcashflight-logo-ivory.svg`, `-navy.svg`; `ui/brand/logo-*.svg`), the favicon and app icon (the mark alone on a navy rounded square), and the copy used in HTML reports (`src/brand.ts`). `ui/brand/apple-touch-icon.png` and the 1200 × 630 share image `ui/brand/og.png` are rendered from those SVGs.
 
-Don't recolour, outline, rotate or stretch the mark, and don't place it on lime.
+In the header the logo is 17 px tall on desktop, 14 px at 820 px and below, and 13 px at 360 px and below. Its left edge sits on the content keyline at every width (`max(24px, (100vw − 1120px) / 2)`, `clamp(20px, 6vw, 30px)` below 820 px), inside a 44 px tap target that returns to the start. Docs and Source links sit on the opposite keyline; below 820 px only Source shows, and the docs stay one tap away through Get started.
+
+Use the mark alone only where the name can't fit (favicon, app icon). Don't recolour, outline, rotate or stretch it, don't place it on lime, and don't set the name with a typed Z.
 
 The three circles hold the project's own illustrations: locks (the promise), gears (listening) and a paper plane (the report). They are cropped square, served from `ui/img/` and shown at full clarity, with no filter or overlay.
 
@@ -101,5 +103,5 @@ To re-run: serve `ui/` (for example `python -m http.server` inside `ui/`), open 
 |---|---|---|
 | Concept palette, lime primary pills and quiet secondary links | Retain the selected concept | [ADR 0005](../architecture/adr/0005-concept-palette.md) |
 | Walk of 900–1500 ms (above the 400 ms motion ceiling) | A spatial move across the whole stage; the manual's slow motion token covers large spatial change, and reduced motion removes it | This page |
-| Secondary links and chips are 24 px, not 44 px, tall | Meets WCAG 2.2 AA (2.5.8); primary buttons and the wordmark keep 44 px or more | This page |
+| Secondary links and chips are 24 px, not 44 px, tall | Meets WCAG 2.2 AA (2.5.8); primary buttons and the logo keep 44 px or more | This page |
 | Masked values are small inline targets in code evidence | WCAG 2.5.8 inline exception; also reachable with Space or Enter | This page |

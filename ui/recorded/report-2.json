@@ -1,9 +1,9 @@
 {
   "version": 1,
   "n": 2,
-  "id": "09715dbd7c12",
-  "startedAt": "2026-10-20T12:34:28.291Z",
-  "finishedAt": "2026-10-20T12:34:29.482Z",
+  "id": "0077350d67dc",
+  "startedAt": "2026-10-20T12:40:54.464Z",
+  "finishedAt": "2026-10-20T12:40:55.595Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -27,18 +27,18 @@
           "request": "POST /api/checkout",
           "status": 201,
           "ok": true,
-          "ms": 39
+          "ms": 33
         },
         {
           "request": "POST /api/orders/:order/paid",
           "status": 200,
           "ok": true,
-          "ms": 38
+          "ms": 31
         }
       ],
       "window": [
-        1792499668626,
-        1792499668703
+        1792500054790,
+        1792500054854
       ]
     },
     {
@@ -50,18 +50,18 @@
           "request": "POST /api/checkout",
           "status": 201,
           "ok": true,
-          "ms": 26
+          "ms": 14
         },
         {
           "request": "POST /api/orders/:order/fail",
           "status": 200,
           "ok": true,
-          "ms": 45
+          "ms": 43
         }
       ],
       "window": [
-        1792499668703,
-        1792499668774
+        1792500054854,
+        1792500054911
       ]
     },
     {
@@ -73,18 +73,18 @@
           "request": "POST /api/checkout",
           "status": 201,
           "ok": true,
-          "ms": 32
+          "ms": 33
         },
         {
           "request": "GET /api/orders/:order?simulate=timeout",
           "status": 504,
           "ok": true,
-          "ms": 14
+          "ms": 3
         }
       ],
       "window": [
-        1792499668774,
-        1792499668820
+        1792500054911,
+        1792500054947
       ]
     }
   ],

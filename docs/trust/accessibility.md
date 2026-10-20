@@ -16,7 +16,7 @@ last_reviewed: 2026-10-19
 ## What has been checked
 
 - **Contrast:** primary text 15.1:1, secondary text 7.6:1, muted text 5.4:1, coral leak text 6.9:1, navy on lime buttons 14.5:1; the journey line is 3.6:1. Values are measured, and listed in [ADR 0005](../architecture/adr/0005-concept-palette.md).
-- **Targets:** every interactive control is at least 24 × 24 px (WCAG 2.2 AA, 2.5.8); primary buttons and the wordmark are at least 44 px tall. Masked values inside code evidence use the inline exception. Checked automatically on 18 screens at seven viewport sizes, 320 to 1920 px ([design system](../design/design-system.md#tested)).
+- **Targets:** every interactive control is at least 24 × 24 px (WCAG 2.2 AA, 2.5.8); primary buttons and the logo are at least 44 px tall. Masked values inside code evidence use the inline exception. Checked automatically on 18 screens at seven viewport sizes, 320 to 1920 px ([design system](../design/design-system.md#tested)).
 - **Reflow:** no sideways scrolling at 320 px wide. Content reflows into a stacked layout at 820 px and below.
 - **Focus:** a visible 2 px accent ring on every focusable element; Escape closes popovers and returns focus to the control that opened them.
 - **Keyboard:** the journey works with Tab and Enter/Space, and ← / →, Page Up / Page Down and the mouse wheel move between moments; ↑ / ↓ scroll a long moment first. Typing in the folder field is never captured. Masked values reveal their proof with Space or Enter.

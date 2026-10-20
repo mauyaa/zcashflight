@@ -1,5 +1,5 @@
 {
- "recordedAt": "2026-10-20T12:34:34.879Z",
+ "recordedAt": "2026-10-20T12:41:00.947Z",
  "project": {
   "name": "ZecShop",
   "path": "examples/zecshop",
@@ -69,9 +69,9 @@
  "seeded": {
   "version": 1,
   "n": 1,
-  "id": "1147ed6149be",
-  "startedAt": "2026-10-20T12:34:26.748Z",
-  "finishedAt": "2026-10-20T12:34:28.144Z",
+  "id": "f83124b2f10d",
+  "startedAt": "2026-10-20T12:40:53.104Z",
+  "finishedAt": "2026-10-20T12:40:54.323Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -95,18 +95,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 47
+      "ms": 42
      },
      {
       "request": "POST /api/orders/:order/paid",
       "status": 200,
       "ok": true,
-      "ms": 36
+      "ms": 31
      }
     ],
     "window": [
-     1792499667128,
-     1792499667211
+     1792500053463,
+     1792500053536
     ]
    },
    {
@@ -118,18 +118,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 30
+      "ms": 12
      },
      {
       "request": "POST /api/orders/:order/fail",
       "status": 200,
       "ok": true,
-      "ms": 44
+      "ms": 42
      }
     ],
     "window": [
-     1792499667211,
-     1792499667285
+     1792500053536,
+     1792500053590
     ]
    },
    {
@@ -141,18 +141,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 32
+      "ms": 22
      },
      {
       "request": "GET /api/orders/:order?simulate=timeout",
       "status": 504,
       "ok": true,
-      "ms": 14
+      "ms": 9
      }
     ],
     "window": [
-     1792499667285,
-     1792499667331
+     1792500053590,
+     1792500053621
     ]
    }
   ],
@@ -193,7 +193,7 @@
       "proof": "checksum",
       "path": "body.props.recipient",
       "masked": "utest1dh…lcr2",
-      "ref": "5893c983"
+      "ref": "abdae73f"
      },
      {
       "cls": "amount",
@@ -201,7 +201,7 @@
       "proof": "context",
       "path": "body.props.amount",
       "masked": "••••",
-      "ref": "1caa0587"
+      "ref": "0b3aa079"
      }
     ],
     "sample": "POST https://analytics.example.com/v1/track",
@@ -265,10 +265,10 @@
      "txid"
     ],
     "destination": "logs/server.log",
-    "scenario": "refunds",
+    "scenario": "errors",
     "step": "POST /api/checkout",
     "occurrences": 1,
-    "firstSeq": 12,
+    "firstSeq": 15,
     "evidence": [
      {
       "cls": "txid",
@@ -276,10 +276,10 @@
       "proof": "context",
       "path": "log",
       "masked": "b78c…1ab8",
-      "ref": "25d55c46"
+      "ref": "daf158fb"
      }
     ],
-    "sample": "2026-10-20T12:34:27.209Z DEBUG broadcast ok txid=b78c…1ab8",
+    "sample": "2026-10-20T12:40:53.534Z DEBUG broadcast ok txid=b78c…1ab8",
     "at": {
      "file": "server/broadcast.ts",
      "line": 9,
@@ -307,7 +307,7 @@
      ]
     },
     "repro": [
-     "zcashflight run --scenario refunds",
+     "zcashflight run --scenario errors",
      "Scenario step: POST /api/checkout",
      "Observed in logs/server.log"
     ]
@@ -333,7 +333,7 @@
       "proof": "context",
       "path": "body.extra.memo",
       "masked": "•••• (26 chars)",
-      "ref": "84d672c0"
+      "ref": "e6460a40"
      }
     ],
     "sample": "POST https://errors.example.io/api/42/store/",
@@ -470,7 +470,7 @@
       "proof": "checksum",
       "path": "body.params[1][0].address",
       "masked": "tmUS…Wzhs",
-      "ref": "9150c442"
+      "ref": "9cf93900"
      }
     ],
     "sample": "POST http://127.0.0.1:18232/",
@@ -558,7 +558,7 @@
  },
  "progress": [
   {
-   "ms": 9,
+   "ms": 8,
    "e": {
     "type": "phase",
     "phase": "starting",
@@ -566,7 +566,7 @@
    }
   },
   {
-   "ms": 136,
+   "ms": 130,
    "e": {
     "type": "captured",
     "requests": 0,
@@ -574,29 +574,29 @@
    }
   },
   {
-   "ms": 388,
+   "ms": 366,
    "e": {
     "type": "phase",
     "phase": "ready"
    }
   },
   {
-   "ms": 388,
+   "ms": 366,
    "e": {
     "type": "phase",
     "phase": "scenarios"
    }
   },
   {
-   "ms": 391,
+   "ms": 380,
    "e": {
     "type": "captured",
-    "requests": 0,
+    "requests": 1,
     "logs": 1
    }
   },
   {
-   "ms": 435,
+   "ms": 408,
    "e": {
     "type": "step",
     "scenario": "checkout",
@@ -606,7 +606,7 @@
    }
   },
   {
-   "ms": 471,
+   "ms": 439,
    "e": {
     "type": "step",
     "scenario": "checkout",
@@ -616,7 +616,7 @@
    }
   },
   {
-   "ms": 501,
+   "ms": 451,
    "e": {
     "type": "step",
     "scenario": "refunds",
@@ -626,15 +626,7 @@
    }
   },
   {
-   "ms": 529,
-   "e": {
-    "type": "captured",
-    "requests": 10,
-    "logs": 4
-   }
-  },
-  {
-   "ms": 545,
+   "ms": 493,
    "e": {
     "type": "step",
     "scenario": "refunds",
@@ -644,7 +636,15 @@
    }
   },
   {
-   "ms": 577,
+   "ms": 509,
+   "e": {
+    "type": "captured",
+    "requests": 12,
+    "logs": 4
+   }
+  },
+  {
+   "ms": 515,
    "e": {
     "type": "step",
     "scenario": "errors",
@@ -654,7 +654,7 @@
    }
   },
   {
-   "ms": 591,
+   "ms": 524,
    "e": {
     "type": "step",
     "scenario": "errors",
@@ -664,7 +664,7 @@
    }
   },
   {
-   "ms": 651,
+   "ms": 630,
    "e": {
     "type": "captured",
     "requests": 14,
@@ -672,14 +672,14 @@
    }
   },
   {
-   "ms": 1379,
+   "ms": 1200,
    "e": {
     "type": "phase",
     "phase": "evaluating"
    }
   },
   {
-   "ms": 1405,
+   "ms": 1228,
    "e": {
     "type": "phase",
     "phase": "done"
@@ -689,9 +689,9 @@
  "fixed": {
   "version": 1,
   "n": 2,
-  "id": "09715dbd7c12",
-  "startedAt": "2026-10-20T12:34:28.291Z",
-  "finishedAt": "2026-10-20T12:34:29.482Z",
+  "id": "0077350d67dc",
+  "startedAt": "2026-10-20T12:40:54.464Z",
+  "finishedAt": "2026-10-20T12:40:55.595Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -715,18 +715,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 39
+      "ms": 33
      },
      {
       "request": "POST /api/orders/:order/paid",
       "status": 200,
       "ok": true,
-      "ms": 38
+      "ms": 31
      }
     ],
     "window": [
-     1792499668626,
-     1792499668703
+     1792500054790,
+     1792500054854
     ]
    },
    {
@@ -738,18 +738,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 26
+      "ms": 14
      },
      {
       "request": "POST /api/orders/:order/fail",
       "status": 200,
       "ok": true,
-      "ms": 45
+      "ms": 43
      }
     ],
     "window": [
-     1792499668703,
-     1792499668774
+     1792500054854,
+     1792500054911
     ]
    },
    {
@@ -761,18 +761,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 32
+      "ms": 33
      },
      {
       "request": "GET /api/orders/:order?simulate=timeout",
       "status": 504,
       "ok": true,
-      "ms": 14
+      "ms": 3
      }
     ],
     "window": [
-     1792499668774,
-     1792499668820
+     1792500054911,
+     1792500054947
     ]
    }
   ],
@@ -806,7 +806,7 @@
  },
  "fixedProgress": [
   {
-   "ms": 2,
+   "ms": 1,
    "e": {
     "type": "phase",
     "phase": "starting",
@@ -814,7 +814,7 @@
    }
   },
   {
-   "ms": 125,
+   "ms": 134,
    "e": {
     "type": "captured",
     "requests": 0,
@@ -822,29 +822,29 @@
    }
   },
   {
-   "ms": 337,
+   "ms": 258,
+   "e": {
+    "type": "captured",
+    "requests": 0,
+    "logs": 1
+   }
+  },
+  {
+   "ms": 327,
    "e": {
     "type": "phase",
     "phase": "ready"
    }
   },
   {
-   "ms": 337,
+   "ms": 327,
    "e": {
     "type": "phase",
     "phase": "scenarios"
    }
   },
   {
-   "ms": 375,
-   "e": {
-    "type": "captured",
-    "requests": 2,
-    "logs": 2
-   }
-  },
-  {
-   "ms": 376,
+   "ms": 360,
    "e": {
     "type": "step",
     "scenario": "checkout",
@@ -854,7 +854,15 @@
    }
   },
   {
-   "ms": 414,
+   "ms": 383,
+   "e": {
+    "type": "captured",
+    "requests": 3,
+    "logs": 2
+   }
+  },
+  {
+   "ms": 391,
    "e": {
     "type": "step",
     "scenario": "checkout",
@@ -864,7 +872,7 @@
    }
   },
   {
-   "ms": 440,
+   "ms": 405,
    "e": {
     "type": "step",
     "scenario": "refunds",
@@ -874,7 +882,7 @@
    }
   },
   {
-   "ms": 485,
+   "ms": 448,
    "e": {
     "type": "step",
     "scenario": "refunds",
@@ -884,15 +892,7 @@
    }
   },
   {
-   "ms": 499,
-   "e": {
-    "type": "captured",
-    "requests": 8,
-    "logs": 4
-   }
-  },
-  {
-   "ms": 517,
+   "ms": 481,
    "e": {
     "type": "step",
     "scenario": "errors",
@@ -902,7 +902,7 @@
    }
   },
   {
-   "ms": 531,
+   "ms": 484,
    "e": {
     "type": "step",
     "scenario": "errors",
@@ -912,7 +912,7 @@
    }
   },
   {
-   "ms": 621,
+   "ms": 507,
    "e": {
     "type": "captured",
     "requests": 11,
@@ -920,14 +920,14 @@
    }
   },
   {
-   "ms": 1175,
+   "ms": 1113,
    "e": {
     "type": "phase",
     "phase": "evaluating"
    }
   },
   {
-   "ms": 1195,
+   "ms": 1133,
    "e": {
     "type": "phase",
     "phase": "done"
@@ -962,7 +962,7 @@
       "proof": "checksum",
       "path": "body.props.recipient",
       "masked": "utest1dh…lcr2",
-      "ref": "5893c983"
+      "ref": "abdae73f"
      },
      {
       "cls": "amount",
@@ -970,7 +970,7 @@
       "proof": "context",
       "path": "body.props.amount",
       "masked": "••••",
-      "ref": "1caa0587"
+      "ref": "0b3aa079"
      }
     ],
     "sample": "POST https://analytics.example.com/v1/track",
@@ -1034,10 +1034,10 @@
      "txid"
     ],
     "destination": "logs/server.log",
-    "scenario": "refunds",
+    "scenario": "errors",
     "step": "POST /api/checkout",
     "occurrences": 1,
-    "firstSeq": 12,
+    "firstSeq": 15,
     "evidence": [
      {
       "cls": "txid",
@@ -1045,10 +1045,10 @@
       "proof": "context",
       "path": "log",
       "masked": "b78c…1ab8",
-      "ref": "25d55c46"
+      "ref": "daf158fb"
      }
     ],
-    "sample": "2026-10-20T12:34:27.209Z DEBUG broadcast ok txid=b78c…1ab8",
+    "sample": "2026-10-20T12:40:53.534Z DEBUG broadcast ok txid=b78c…1ab8",
     "at": {
      "file": "server/broadcast.ts",
      "line": 9,
@@ -1076,7 +1076,7 @@
      ]
     },
     "repro": [
-     "zcashflight run --scenario refunds",
+     "zcashflight run --scenario errors",
      "Scenario step: POST /api/checkout",
      "Observed in logs/server.log"
     ]
@@ -1102,7 +1102,7 @@
       "proof": "context",
       "path": "body.extra.memo",
       "masked": "•••• (26 chars)",
-      "ref": "84d672c0"
+      "ref": "e6460a40"
      }
     ],
     "sample": "POST https://errors.example.io/api/42/store/",
@@ -1239,7 +1239,7 @@
       "proof": "checksum",
       "path": "body.params[1][0].address",
       "masked": "tmUS…Wzhs",
-      "ref": "9150c442"
+      "ref": "9cf93900"
      }
     ],
     "sample": "POST http://127.0.0.1:18232/",
@@ -1316,9 +1316,9 @@
  "regressed": {
   "version": 1,
   "n": 3,
-  "id": "ea430d963684",
-  "startedAt": "2026-10-20T12:34:29.489Z",
-  "finishedAt": "2026-10-20T12:34:30.642Z",
+  "id": "038a7c44d372",
+  "startedAt": "2026-10-20T12:40:55.600Z",
+  "finishedAt": "2026-10-20T12:40:56.740Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -1342,18 +1342,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 36
+      "ms": 35
      },
      {
       "request": "POST /api/orders/:order/paid",
       "status": 200,
       "ok": true,
-      "ms": 29
+      "ms": 25
      }
     ],
     "window": [
-     1792499669824,
-     1792499669889
+     1792500055925,
+     1792500055985
     ]
    },
    {
@@ -1365,18 +1365,18 @@
       "request": "POST /api/checkout",
       "status": 201,
       "ok": true,
-      "ms": 23
+      "ms": 28
      },
      {
       "request": "POST /api/orders/:order/fail",
       "status": 200,
       "ok": true,
-      "ms": 28
+      "ms": 45
      }
     ],
     "window": [
-     1792499669889,
-     1792499669940
+     1792500055985,
+     1792500056058
     ]
    },
    {
@@ -1394,12 +1394,12 @@
       "request": "GET /api/orders/:order?simulate=timeout",
       "status": 504,
       "ok": true,
-      "ms": 14
+      "ms": 15
      }
     ],
     "window": [
-     1792499669940,
-     1792499669987
+     1792500056058,
+     1792500056106
     ]
    }
   ],
@@ -1428,7 +1428,7 @@
     "scenario": "errors",
     "step": "POST /api/checkout",
     "occurrences": 1,
-    "firstSeq": 13,
+    "firstSeq": 16,
     "evidence": [
      {
       "cls": "memo",
@@ -1436,7 +1436,7 @@
       "proof": "context",
       "path": "body.extra.memo",
       "masked": "•••• (26 chars)",
-      "ref": "4dbe0992"
+      "ref": "bd999f74"
      }
     ],
     "sample": "POST https://errors.example.io/api/42/store/",
@@ -1525,7 +1525,7 @@
  "history": [
   {
    "n": 1,
-   "finishedAt": "2026-10-20T12:34:28.144Z",
+   "finishedAt": "2026-10-20T12:40:54.323Z",
    "status": "complete",
    "findings": 5,
    "fingerprint": "2aa8 f30c",
@@ -1533,7 +1533,7 @@
   },
   {
    "n": 2,
-   "finishedAt": "2026-10-20T12:34:29.482Z",
+   "finishedAt": "2026-10-20T12:40:55.595Z",
    "status": "complete",
    "findings": 0,
    "fingerprint": "9aa9 1e44",

@@ -20,8 +20,8 @@
 
 ### Design and documentation
 
-- The lime Z mark is the project's only logo: header lockup, favicon, app icon, HTML reports, README and a 1200 × 630 share image. `scripts/brand.py` builds every asset from its master SVG; the old Z-circle and "ZF" marks are gone.
-- The ZCASHFLIGHT name set in Michroma (SIL OFL) as outlines, aligned to the content keyline at every width with a 44 px tap target.
+- The lime Z mark is the project's only logo and the Z of the name: the logo reads ZCASHFLIGHT, the mark followed by CASHFLIGHT in Michroma (SIL OFL), cap-height aligned and spaced as the typeface spaces Z to C. Used in the header, HTML reports, README and a 1200 × 630 share image; the mark alone is the favicon and app icon. `scripts/brand.py` builds every asset from the mark's master SVG; the old Z-circle and "ZF" marks are gone.
+- The logo is aligned to the content keyline at every width with a 44 px tap target.
 - Concept positioning and buttons restored; the project's own illustrations (locks, gears, paper plane) in the three circles.
 - Scroll (wheel/trackpad), Page Up/Down and arrow keys move between pages; long pages scroll first, and typing in the folder field is never interrupted.
 - Page 4: a hand-drawn arrow and "TAP A LEAK" label point to the leak circles; circles and list rows highlight each other; hero, app and final circles are clickable.

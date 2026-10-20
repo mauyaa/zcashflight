@@ -1,9 +1,9 @@
 {
   "version": 1,
   "n": 1,
-  "id": "1147ed6149be",
-  "startedAt": "2026-10-20T12:34:26.748Z",
-  "finishedAt": "2026-10-20T12:34:28.144Z",
+  "id": "f83124b2f10d",
+  "startedAt": "2026-10-20T12:40:53.104Z",
+  "finishedAt": "2026-10-20T12:40:54.323Z",
   "app": "ZecShop",
   "network": "testnet",
   "policyHash": "d434f2a9de5d",
@@ -27,18 +27,18 @@
           "request": "POST /api/checkout",
           "status": 201,
           "ok": true,
-          "ms": 47
+          "ms": 42
         },
         {
           "request": "POST /api/orders/:order/paid",
           "status": 200,
           "ok": true,
-          "ms": 36
+          "ms": 31
         }
       ],
       "window": [
-        1792499667128,
-        1792499667211
+        1792500053463,
+        1792500053536
       ]
     },
     {
@@ -50,18 +50,18 @@
           "request": "POST /api/checkout",
           "status": 201,
           "ok": true,
-          "ms": 30
+          "ms": 12
         },
         {
           "request": "POST /api/orders/:order/fail",
           "status": 200,
           "ok": true,
-          "ms": 44
+          "ms": 42
         }
       ],
       "window": [
-        1792499667211,
-        1792499667285
+        1792500053536,
+        1792500053590
       ]
     },
     {
@@ -73,18 +73,18 @@
           "request": "POST /api/checkout",
           "status": 201,
           "ok": true,
-          "ms": 32
+          "ms": 22
         },
         {
           "request": "GET /api/orders/:order?simulate=timeout",
           "status": 504,
           "ok": true,
-          "ms": 14
+          "ms": 9
         }
       ],
       "window": [
-        1792499667285,
-        1792499667331
+        1792500053590,
+        1792500053621
       ]
     }
   ],
@@ -125,7 +125,7 @@
           "proof": "checksum",
           "path": "body.props.recipient",
           "masked": "utest1dh…lcr2",
-          "ref": "5893c983"
+          "ref": "abdae73f"
         },
         {
           "cls": "amount",
@@ -133,7 +133,7 @@
           "proof": "context",
           "path": "body.props.amount",
           "masked": "••••",
-          "ref": "1caa0587"
+          "ref": "0b3aa079"
         }
       ],
       "sample": "POST https://analytics.example.com/v1/track",
@@ -197,10 +197,10 @@
         "txid"
       ],
       "destination": "logs/server.log",
-      "scenario": "refunds",
+      "scenario": "errors",
       "step": "POST /api/checkout",
       "occurrences": 1,
-      "firstSeq": 12,
+      "firstSeq": 15,
       "evidence": [
         {
           "cls": "txid",
@@ -208,10 +208,10 @@
           "proof": "context",
           "path": "log",
           "masked": "b78c…1ab8",
-          "ref": "25d55c46"
+          "ref": "daf158fb"
         }
       ],
-      "sample": "2026-10-20T12:34:27.209Z DEBUG broadcast ok txid=b78c…1ab8",
+      "sample": "2026-10-20T12:40:53.534Z DEBUG broadcast ok txid=b78c…1ab8",
       "at": {
         "file": "server/broadcast.ts",
         "line": 9,
@@ -239,7 +239,7 @@
         ]
       },
       "repro": [
-        "zcashflight run --scenario refunds",
+        "zcashflight run --scenario errors",
         "Scenario step: POST /api/checkout",
         "Observed in logs/server.log"
       ]
@@ -265,7 +265,7 @@
           "proof": "context",
           "path": "body.extra.memo",
           "masked": "•••• (26 chars)",
-          "ref": "84d672c0"
+          "ref": "e6460a40"
         }
       ],
       "sample": "POST https://errors.example.io/api/42/store/",
@@ -402,7 +402,7 @@
           "proof": "checksum",
           "path": "body.params[1][0].address",
           "masked": "tmUS…Wzhs",
-          "ref": "9150c442"
+          "ref": "9cf93900"
         }
       ],
       "sample": "POST http://127.0.0.1:18232/",

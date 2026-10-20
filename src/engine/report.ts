@@ -3,7 +3,7 @@
 
 import type { Comparison, Finding, Run } from './types.ts';
 import { REPO } from '../meta.ts';
-import { MARK, WORDMARK } from '../brand.ts';
+import { LOGO } from '../brand.ts';
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
 const SEV_ICON: Record<Finding['severity'], string> = { critical: '🟥', high: '🟧', medium: '🟨', low: '⬜' };
@@ -92,7 +92,7 @@ export function html(run: Run, cmp?: Comparison): string {
 *{box-sizing:border-box}
 body{margin:0;background:var(--color-bg);color:var(--color-text-primary);font:16px/1.6 'Instrument Sans',Inter,system-ui,-apple-system,sans-serif;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
 main{max-width:900px;margin:0 auto;padding:48px 24px 96px}
-.brand{display:flex;align-items:center;gap:14px}.brand .mark{height:26px;width:auto}.word{display:block;height:18px;width:auto;color:var(--color-text-primary)}
+.word{display:block;height:20px;width:auto;color:var(--color-text-primary)}
 .eyebrow{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent);margin:48px 0 8px}
 h1{font-weight:600;font-size:clamp(2rem,5vw,2.75rem);line-height:1.1;letter-spacing:-.025em;margin:0 0 16px;text-wrap:balance}
 h3{font-weight:600;font-size:1.375rem;line-height:1.35;letter-spacing:-.01em;margin:0}
@@ -116,7 +116,7 @@ a{color:var(--color-accent);text-underline-offset:3px}
 .ok{color:var(--color-accent)} small{color:var(--color-text-muted);font-size:12px;line-height:1.5;display:block;margin-top:32px}
 @media (max-width:640px){.cov{grid-template-columns:1fr}main{padding:32px 16px 64px}}
 </style></head><body><main>
-<div class="brand"><svg class="mark" viewBox="0 0 ${MARK.width} ${MARK.height}" aria-hidden="true"><path fill="${MARK.fill}" d="${MARK.d}"/></svg><svg class="word" viewBox="0 0 ${WORDMARK.width} ${WORDMARK.height}" role="img" aria-label="ZcashFlight"><path fill="currentColor" fill-rule="evenodd" d="${WORDMARK.d}"/></svg></div>
+<svg class="word" viewBox="0 0 ${LOGO.width} ${LOGO.height}" role="img" aria-label="ZcashFlight"><path fill="${LOGO.markFill}" transform="${LOGO.markTransform}" d="${LOGO.mark}"/><path fill="currentColor" d="${LOGO.letters}"/></svg>
 <p class="eyebrow">Privacy report</p>
 <h1 class="${run.findings.length ? '' : 'ok'}">${esc(headline(run, cmp))}</h1>
 <p class="meta">${esc(run.app)} · run ${run.n} · ${esc(run.network)} · ${esc(when(run.finishedAt))} · fingerprint <code>${esc(run.fingerprint)}</code></p>

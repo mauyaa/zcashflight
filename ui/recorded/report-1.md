@@ -2,7 +2,7 @@
 
 **5 privacy leaks found.**
 
-Run 1 · testnet · 20 Oct 2026, 12:34 UTC · fingerprint `2aa8 f30c` · 14 requests, 5 log lines, 7 kept off the network
+Run 1 · testnet · 20 Oct 2026, 12:40 UTC · fingerprint `2aa8 f30c` · 14 requests, 5 log lines, 7 kept off the network
 
 | | Finding | Rule | Where | Code |
 |---|---|---|---|---|
@@ -35,10 +35,10 @@ body.props.amount: ••••   (amount, by field name)
 
 <details><summary><b>Transaction ID written to a log</b> · high · <code>server/broadcast.ts:9</code></summary>
 
-Scenario **refunds**, 1 occurrence. Evidence is masked.
+Scenario **errors**, 1 occurrence. Evidence is masked.
 
 ```
-2026-10-20T12:34:27.209Z DEBUG broadcast ok txid=b78c…1ab8
+2026-10-20T12:40:53.534Z DEBUG broadcast ok txid=b78c…1ab8
 log: b78c…1ab8   (txid, by field name)
 ```
 
@@ -49,7 +49,7 @@ log: b78c…1ab8   (txid, by field name)
 
 **Read:** [Zcash privacy recommendations](https://zcash.readthedocs.io/en/latest/rtd_pages/privacy_recommendations_best_practices.html)
 
-**Reproduce:** `zcashflight run --scenario refunds` → `Scenario step: POST /api/checkout` → `Observed in logs/server.log`
+**Reproduce:** `zcashflight run --scenario errors` → `Scenario step: POST /api/checkout` → `Observed in logs/server.log`
 
 </details>
 

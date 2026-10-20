@@ -1,4 +1,4 @@
-<p><img src="brand/logo/zcashflight-mark.svg" alt="ZcashFlight" width="72"></p>
+<p><picture><source media="(prefers-color-scheme: dark)" srcset="brand/logo/zcashflight-logo-ivory.svg"><img src="brand/logo/zcashflight-logo-navy.svg" alt="ZcashFlight" height="28"></picture></p>
 
 # ZcashFlight — privacy tests for Zcash apps
 
