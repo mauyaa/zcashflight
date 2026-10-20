@@ -182,6 +182,10 @@ ZcashFlight checks the observable behaviour of the scenarios you give it. It doe
 
 Full index: [docs/](docs/README.md)
 
+## Built for ZECATHON 2026
+
+ZcashFlight was written for ZECATHON 2026 (build window 28 Sep – 28 Oct 2026), Core & Tooling track. All of its code and assets date from 18 Oct 2026 onwards; the first commit in this repository collects the first two days of work, and every change since is its own commit. It is open source from submission, under the MIT licence.
+
 ## Licence and attribution
 
 MIT ([LICENSE](LICENSE)). Bundled fonts (Instrument Sans, Michroma; SIL OFL) and the BIP-39 word list are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The regtest proof uses [Z3](https://github.com/ZcashFoundation/z3), [Zebra](https://github.com/ZcashFoundation/zebra) and [Zallet](https://github.com/zcash/zallet) as run-time tools; none of their code is included here.

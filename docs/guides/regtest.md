@@ -44,7 +44,7 @@ git clone https://github.com/ZcashFoundation/z3 && cd z3
 docker compose --env-file .env.regtest up -d zebra zallet
 ```
 
-On Linux and macOS these are Z3's documented commands. The end-to-end proof below was run on Windows 11.
+On Linux and macOS these are Z3's documented commands. The end-to-end proof below was run on 20 Oct 2026 from Windows 11 and from a fresh clone on Linux (Ubuntu in WSL 2, Node 24), both against the same Zebra + Zallet stack in Docker Desktop.
 
 **On Windows (Git Bash)** the init script stops at the wallet step, because Git Bash rewrites the container paths. This sequence was tested on Windows 11 with Docker Desktop:
 
