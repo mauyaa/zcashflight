@@ -20,6 +20,7 @@ ZcashFlight runs your Zcash app's real flows and checks every request and log li
 
 ## Guides
 
+- [Prove it on a real Zcash chain](guides/regtest.md): ZecShop against Zebra + Zallet regtest, before and after.
 - [Run in CI](guides/run-in-ci.md): fail a pull request that introduces a leak.
 - [Test a non-Node app](guides/non-node-apps.md): Rust, Go, Python or anything else, through the local proxy.
 - [Test a browser wallet](guides/browser-wallets.md): scan a HAR export from DevTools.

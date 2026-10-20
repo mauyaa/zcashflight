@@ -1,6 +1,6 @@
 // Regtest test harness only. It plays the customer's wallet and mines blocks, so a scenario can make a
 // real shielded payment on a local Zebra + Zallet regtest network. It is not part of the shop: the routes
-// that use it exist only when REGTEST_CUSTOMER_ADDRESS is set (see regtest/README.md).
+// that use it exist only when REGTEST_CUSTOMER_ADDRESS is set (see docs/guides/regtest.md).
 // Zallet follows ZIP 315: the wallet's own outputs (change) are spendable after 3 confirmations,
 // funds received from elsewhere after 10, so the harness mines accordingly.
 

@@ -24,6 +24,7 @@ Starts the app from `app.start`, waits for `app.ready`, runs the scenarios, eval
 | `--fail-on <severity>` | `medium` | `low`, `medium`, `high` or `critical` |
 | `--sarif <file>` | — | Also write SARIF 2.1.0 |
 | `--report <file>` | — | Also write a report: `.html` for HTML, anything else for Markdown |
+| `--policy <file>` | `./zcashflight.yml` | Use another policy file, for example `zcashflight.regtest.yml` beside the default one. Works with every command. Runs are compared only with earlier runs of the same `app.name` |
 
 If `GITHUB_STEP_SUMMARY` is set, the Markdown report is appended to it.
 

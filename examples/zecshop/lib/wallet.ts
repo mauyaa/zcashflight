@@ -1,6 +1,6 @@
 // JSON-RPC client for zallet / zcashd. The only destination allowed to see addresses, amounts and memos.
 // By default it talks to the bundled mock (mock/zallet.ts). With WALLET_MOCK=0 it talks to a real wallet:
-// see regtest/README.md for running ZecShop against Zebra + Zallet on a local regtest network.
+// see docs/guides/regtest.md for running ZecShop against Zebra + Zallet on a local regtest network.
 
 const RPC = process.env.WALLET_RPC ?? 'http://127.0.0.1:18232';
 const AUTH = process.env.WALLET_RPC_USER

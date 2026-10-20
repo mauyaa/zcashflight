@@ -67,6 +67,7 @@ scenarios:
         save: { order: order_id }         # read response.order_id into {{order}}
       - request: POST /api/orders/{{order}}/fail
         expect: 200                       # optional; otherwise any status below 500 is ok
+        timeout_ms: 180000                # optional; default 10000 (real wallet sends take longer)
 ```
 
 `save` paths use dots for nesting (`data.order.id`). `{{name}}` works in paths and in any string in `json`.

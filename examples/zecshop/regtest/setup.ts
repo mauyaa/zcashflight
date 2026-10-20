@@ -20,7 +20,7 @@ async function rpc<T = any>(url: string, method: string, params: unknown[] = [])
   try {
     r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', authorization: AUTH }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) });
   } catch {
-    throw new Error(`cannot reach ${url}. Start the Z3 regtest stack first (see regtest/README.md).`);
+    throw new Error(`cannot reach ${url}. Start the Z3 regtest stack first (see docs/guides/regtest.md).`);
   }
   const j = await r.json();
   if (j.error) throw new Error(`${method}: ${j.error.message}`);

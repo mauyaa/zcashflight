@@ -33,6 +33,12 @@ An identifier only counts when its encoding is real. Each hit records its **proo
 
 A WIF key's version byte is shared with Bitcoin, so a Bitcoin WIF private key is also reported. That is deliberate: a private key leaving the app is critical whichever chain it belongs to.
 
+## Proven by a valid ZIP 321 payment request
+
+A `zcash:` URI anywhere in a URL, header, body or log line is parsed against [ZIP 321](https://zips.z.cash/zip-0321). It counts only if it is valid: the ABNF grammar, `paramindex` without leading zeros, no duplicate parameters, an address for every index, amounts as decimal ZEC with at most 8 decimals and at most 21,000,000, memos as base64url (no `+`, `/` or padding) of at most 512 bytes, no memo for a transparent address, no unknown `req-` parameter, no `amount` with `req-asset`, and every address checksum-valid and not Sprout.
+
+A valid request is reported field by field under the field that carried it, for example `body.props.payment_request[zip321].address`, `[zip321].amount` and `[zip321].memo` (with `[zip321.1]` for the second payment). The address keeps its checksum proof; the amount and memo are proven by the request itself. An invalid URI isn't credited as a payment request, but any valid address inside it is still found by the checksum scan.
+
 ## Proven by word list
 
 **Seed phrase:** 12 or more consecutive words from the BIP-39 English list (2048 words, sha256 `2f5eed53…dbda`), separated only by spaces or commas. A field named `seed`, `mnemonic`, `recovery_phrase` or `backup_phrase` holding 12 or more words also counts.

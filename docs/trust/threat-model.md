@@ -42,6 +42,7 @@ Following the OWASP threat-modelling structure: assets, actors, trust boundaries
 | Path traversal in the dashboard's static files | Resolved paths must stay inside `ui/` | `/../package.json` → 404 |
 | Script injection in the dashboard from finding text | All finding text is escaped before insertion; CSP `default-src 'self'`, no `eval` | `ui/app.js` `esc()`; the CSP blocks eval (observed) |
 | Supply-chain compromise | Zero runtime dependencies | `package.json` has no `dependencies` |
+| The regtest harness pays orders or mines blocks in a real deployment | Its routes (`/regtest/pay`, `/regtest/mine`) exist only when `REGTEST_CUSTOMER_ADDRESS` is set, and only the regtest policy sets it. The `zebra`/`zebra` RPC credentials are Z3's fixed regtest defaults, valid only on that local network | `examples/zecshop/server.ts`; [regtest guide](../guides/regtest.md) |
 | Arbitrary command execution from a policy file | `app.start` runs a shell command, by design. Only run policies you trust, as with any `npm start` | Documented here and in the quickstart |
 
 ## Not defended against

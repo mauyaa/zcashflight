@@ -152,7 +152,9 @@ export function evaluate(events: CaptureEvent[], policy: Policy, scenarios: Scen
       if (e.rpc && policy.transactions.shieldedOnly) {
         const revealing = /^(AllowRevealed|AllowFullyTransparent|NoPrivacy|AllowLinkingAccountAddresses)/.test(e.rpc.privacyPolicy ?? '');
         const toT = e.rpc.toPools.some(p => p === 'transparent' || p === 'tex');
-        const fromT = e.rpc.fromPool === 'transparent';
+        // Shielding (transparent coinbase into a shielded address) is what Zcash recommends, not an exposure
+        const shielding = e.rpc.method === 'z_shieldcoinbase' && !toT;
+        const fromT = e.rpc.fromPool === 'transparent' && !shielding;
         if (toT || fromT || revealing) {
           const hs = e.hits.filter(h => h.cls === 'address' && (h.pool === 'transparent' || h.pool === 'tex'));
           add('C', e.host, 'wallet', e, hs, ['address']);

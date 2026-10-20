@@ -19,7 +19,7 @@ Rules are deterministic: the same events and policy always give the same finding
 
 Fires when an outbound request carries a protected data class (in the URL, a header, or the body) to a host that isn't in `destinations:`, or that is listed without that class in `allow:`.
 
-Grouped by destination and code path, so three checkouts that send the same field give one finding with three occurrences. Example: *Address and amount sent to analytics.*
+Grouped by destination and code path, so three checkouts that send the same field give one finding with three occurrences. Example: *Address, amount and memo sent to analytics*, when a checkout hands its ZIP 321 payment request to an analytics SDK. The fix names the field that carried the request.
 
 ## Rule B
 
@@ -34,7 +34,7 @@ Fires when console output (`console.log`, `info`, `warn`, `error`, `debug`) or a
 Fires on a wallet send over JSON-RPC (`z_sendmany`, `sendtoaddress`, `sendmany`, `z_shieldcoinbase`, `z_mergetoaddress`) when:
 
 - a recipient is a transparent or TEX address, or
-- the funds come from the transparent pool, or
+- the funds come from the transparent pool (except `z_shieldcoinbase` into a shielded address: shielding is the recommended move, not an exposure), or
 - `privacyPolicy` reveals something (`AllowRevealedRecipients`, `AllowRevealedAmounts`, `AllowRevealedSenders`, `AllowFullyTransparent`, `AllowLinkingAccountAddresses`, `NoPrivacy`).
 
 Example: *Payment sent to a transparent address.*
@@ -55,4 +55,4 @@ Each finding has a 10-character ID computed from the rule, the destination, the 
 
 ## Code location
 
-For live runs, ZcashFlight records your project's own stack frames (innermost first, outside `node_modules`) and points the finding at the line where a protected field is handed over by name. For wallet sends, it points at the first caller outside the RPC client. Log-file lines carry no stack, so they are matched to the source line containing the log's literal text, preferring files the app was seen running.
+For live runs, ZcashFlight records your project's own stack frames (innermost first, outside `node_modules`) and points the finding at the line where a protected field is handed over by name (for a ZIP 321 request, the field that carried the request). For wallet sends, it points at the first caller outside the RPC client. Proxy captures and HAR imports carry no stack, so their findings have no code location rather than a guessed one. Log-file lines carry no stack either, so they are matched to the source line containing the log's literal text, preferring files the app was seen running.

@@ -52,6 +52,7 @@ export const CASES: Case[] = [
   { name: 'Transparent private key (WIF) in a log', events: [log(`imported key ${wif}`)], expect: { rule: 'B', severity: 'critical' }, raw: [wif] },
   { name: 'z_sendmany to a transparent address', events: [rpc('z_sendmany', ['ANY_UA', [{ address: t, amount: 1 }], 1, null, 'AllowRevealedRecipients'])], expect: { rule: 'C' }, raw: [t] },
   { name: 'z_sendmany with a revealing privacy policy', events: [rpc('z_sendmany', ['ANY_UA', [{ address: ua, amount: 1 }], 1, null, 'AllowRevealedSenders'])], expect: { rule: 'C' }, raw: [ua] },
+  { name: 'sendtoaddress from the transparent pool', events: [rpc('sendtoaddress', [t, 1])], expect: { rule: 'C' }, raw: [t] },
   { name: 'Payment to a TEX address', events: [rpc('z_sendmany', ['ANY_UA', [{ address: tex, amount: 1 }], 1, null, 'FullPrivacy'])], expect: { rule: 'C' }, raw: [tex] },
   { name: 'Unapproved price API on the payment path', events: [req('GET', 'https://api.coingecko.com/api/v3/simple/price?ids=zcash&vs_currencies=usd')], expect: { rule: 'D' }, raw: [] },
   { name: 'Structured JSON log with an amount field', events: [log(JSON.stringify({ level: 'info', msg: 'settled', amount_zats: 125000000 }))], expect: { rule: 'B' }, raw: ['125000000'] },
@@ -64,6 +65,7 @@ export const CASES: Case[] = [
   { name: 'UUIDs, base58 noise and a one-character-corrupted address', events: [log(`req 3f1c2a9e-4b7d-4c1e-9a55-0c2d8e7f6b1a user 5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTK to ${ua.slice(0, -1)}${ua.endsWith('q') ? 'p' : 'q'}`)], expect: null, raw: [] },
   { name: 'Ordinary English prose', events: [log('Thank you for your order. We will ship it soon and send you an email when it leaves the warehouse.')], expect: null, raw: [] },
   { name: 'ZIP 321 payment request sent to the approved wallet RPC', events: [req('POST', 'http://127.0.0.1:18232/', { jsonrpc: '2.0', id: 1, method: 'pay', params: [zip321] })], expect: null, raw: [] },
+  { name: 'Shielding transparent coinbase into a unified address', events: [rpc('z_shieldcoinbase', [t, ua, null, 50])], expect: null, raw: [] },
   { name: 'Transparent payout when the policy permits transparent payments', events: [rpc('z_sendmany', ['ANY_UA', [{ address: t, amount: 1 }], 1, null, 'AllowRevealedRecipients'])], expect: null, raw: [], policy: POLICY_TRANSPARENT_OK },
   { name: 'Approved analytics with an event name only', events: [req('POST', 'https://analytics.example.com/track', { event: 'checkout' })], expect: null, raw: [] },
 ];

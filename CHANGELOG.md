@@ -2,6 +2,13 @@
 
 ## Unreleased — reviewed 2026-10-19
 
+### Added
+
+- ZIP 321 payment requests: `zcash:` URIs are parsed strictly against the ZIP (grammar, indices, amounts, base64url memos of at most 512 bytes, no memo for transparent addresses, unknown `req-` parameters rejected) and a leaked request is reported field by field: address, amount and memo. ZecShop's checkout now returns one, and its seeded analytics leak ships it.
+- A before/after proof on a real Zcash chain: ZecShop runs against Zallet and Zebra on a Z3 regtest network (`npm run regtest`, [guide](docs/guides/regtest.md)). Payments, sweeps and refunds are real transactions; the leaky build fails the gate and the fixed one passes.
+- `--policy <file>` for every command, and `timeout_ms` per scenario step.
+- Validation corpus: ZIP 321 leaks in analytics and logs, and look-alikes that must stay silent (a request to the approved wallet, shielding coinbase, a transparent payout the policy allows): 19/19 found, 0/8 false positives.
+
 ### Fixed
 
 - Detect every repeated query/form parameter; mask decoded URL and JSON log values, including percent escapes, form spaces, JSON escapes and alternate numeric spellings. Remove URL credentials and mask recognised identifiers in field metadata.
@@ -13,6 +20,10 @@
 - Reject malformed dashboard tokens and URL escapes without crashing, and enforce the static directory boundary.
 - Preserve POSIX leading slashes in stack-frame locations.
 - Leak details: the back / next row no longer overlaps the title (a header class collided with it); long evidence lines wrap instead of scrolling sideways. The layout audit now checks both, plus the logo against the header links.
+- Runs are compared only with earlier runs of the same app, so a mock and a regtest policy in one folder never mix.
+- Rule C no longer flags `z_shieldcoinbase` into a shielded address: shielding is the recommended move, not an exposure.
+- The line blamed for a leaked ZIP 321 request is the one that passed the request, and the fix names that field.
+- Masked values in evidence never break across lines on narrow screens.
 - Code locations resolve when the project path is a symlink (macOS `/var` → `/private/var`).
 - The installed package (`dist/`) loads its collector correctly; previously apps failed to start when run from a build.
 - Dashboard: "Run on <your app>" runs the open project (it ran the ZecShop sample); a reload keeps the last saved run; singular wording for one leak, request or fix.

@@ -65,8 +65,8 @@ Out of scope as users: consumers and wallet end users.
 
 | | |
 |---|---|
-| **In v0.1** | Node app capture; proxy for other stacks; HAR import; rules A–D; compare; CI gate; SARIF, HTML and Markdown; dashboard; sample app and validation suite |
-| **Planned** | Real zallet/zebrad regtest scenario; custom rule plugins; mobile (iOS/Android) capture; team history |
+| **In v0.1** | Node app capture; proxy for other stacks; HAR import; ZIP 321 payment-request detection; rules A–D; compare; CI gate; SARIF, HTML and Markdown; dashboard; sample app, validation suite, and a before/after proof on a real Zebra + Zallet regtest chain |
+| **Planned** | Custom rule plugins; mobile (iOS/Android) capture; team history; local ZIP 316 receiver decoding (today the wallet resolves receivers) |
 | **Out of scope** | Decrypting shielded data; identifying users; scanning third-party wallets; network anonymity; certifying an app as private |
 | **Not yet proven** | That teams adopt it in CI; the false-positive rate on large real codebases |
 
@@ -74,8 +74,8 @@ Out of scope as users: consumers and wallet end users.
 
 | Measure | Target | Today |
 |---|---|---|
-| Seeded exposures detected | 100% of the validation suite | 16/16 (`npm run validate`) |
-| False positives on look-alikes | 0 | 0/5 |
+| Seeded exposures detected | 100% of the validation suite | 19/19 (`npm run validate`) |
+| False positives on look-alikes | 0 | 0/8 |
 | Raw values in stored data | 0 | 0, asserted in tests |
 | Repeat-run consistency | Identical fingerprint | Asserted in `test/zecshop.test.ts` |
 | Time to first result | Under 2 minutes from clone | `npm run demo` (measured locally; not user-tested) |

@@ -19,7 +19,7 @@ Each requirement from the original product requirements document, mapped to what
 |---|---|---|---|
 | Privacy Test Lab | Predefined scenarios can be executed | Available | `examples/zecshop` with 3 scenarios; `npm run demo` |
 | Traffic Collector | Records destinations, fields and timestamps | Available | `src/capture/register.ts`, `proxy.ts`; event fields `host`, `fields`, `t` in [run file](../reference/run-file.md) |
-| Sensitive Field Detection | Identifies seeded sensitive fields in test data | Available | 16/16 in `npm run validate` |
+| Sensitive Field Detection | Identifies seeded sensitive fields in test data | Available | 19/19 in `npm run validate`, including ZIP 321 payment requests |
 | Log Inspection | Detects designated fields in test logs | Available | Rule B; validation cases "Transaction ID in a log line", "Seed phrase printed by console.error" |
 | Findings Dashboard | Shows affected fields and reproduction details | Available | `zcashflight ui`; leak detail shows evidence, the line, the fix and reproduction steps |
 | Remediation Guide | Actionable guidance for each rule | Available | `remediation` on every finding; [rules reference](../reference/rules.md) |
@@ -32,7 +32,7 @@ Each requirement from the original product requirements document, mapped to what
 | CI integration (GitHub Actions) | Available | `action.yml`, `--ci`, SARIF; [guide](../guides/run-in-ci.md) |
 | Custom privacy policies | Available | `zcashflight.yml` protect, destinations and log allow-lists |
 | Team audit history and report export | Partial | Local run history and exports (HTML, Markdown, SARIF, JSON); no shared team history |
-| More Zcash wallet and RPC environments | Partial | zcashd/zallet JSON-RPC send methods parsed; live regtest scenario planned |
+| More Zcash wallet and RPC environments | Available | zcashd/zallet JSON-RPC send methods parsed; ZecShop runs against real Zallet + Zebra regtest (`npm run regtest`, [guide](../guides/regtest.md)) |
 | Extensible rule plugins | Planned | |
 
 ## Data-handling requirements
@@ -49,7 +49,7 @@ Each requirement from the original product requirements document, mapped to what
 
 | Question | Answer today |
 |---|---|
-| Does it detect every seeded exposure? | Yes, 16/16 in the validation suite and 5/5 in ZecShop |
+| Does it detect every seeded exposure? | Yes, 19/19 in the validation suite and 5/5 in ZecShop, with the mock wallet and on a real regtest chain |
 | Does the rule pass after the issue is fixed? | Yes, ZecShop shows 0 findings after the fixes |
 | Does each finding include reproduction steps and evidence? | Yes, `repro` and `evidence` on every finding |
 | Are results consistent across repeated runs? | Yes, identical fingerprints, asserted in tests |
