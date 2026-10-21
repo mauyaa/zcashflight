@@ -46,12 +46,12 @@ test('every reference channel leaks are found, with masked evidence and nothing 
   };
   for (const [scenario, [rule, path]] of Object.entries(expect)) {
     const f = byScenario.get(scenario);
-    assert.ok(f, `${scenario}: no finding`);
+    assert.ok(f, `${scenario}: no finding; findings by scenario: ${[...byScenario.keys()].join(', ')}; stats ${JSON.stringify(run.stats)}; error ${run.error ?? 'none'}`);
     assert.equal(f.rule, rule, scenario);
     assert.ok(f.evidence.some(e => e.path === path), `${scenario}: evidence ${f.evidence.map(e => e.path)} lacks ${path}`);
   }
-  assert.equal(run.findings.length, Object.keys(expect).length, 'one finding per channel, no duplicates');
-  assert.equal(run.stats.logs, 2, 'console.log is counted once, not again through process.stdout');
+  assert.equal(run.findings.length, Object.keys(expect).length, `one finding per channel, no duplicates: ${run.findings.map(f => f.scenario + ':' + f.title).join(' | ')}`);
+  assert.equal(run.stats.logs, 2, `console.log is counted once, not again through process.stdout (stats ${JSON.stringify(run.stats)})`);
   assert.deepEqual(run.coverage.uninspected, [], 'every body in these routes was readable');
   assert.ok(run.coverage.tested.some(t => /fetch \(\d+\).*node:http.*console \(1\).*process\.stdout \/ stderr \(1\)/.test(t)), run.coverage.tested.join(' | '));
   const stored = storedText(join(DIR, '.zcashflight'));

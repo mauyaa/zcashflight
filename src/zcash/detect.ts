@@ -141,9 +141,26 @@ export function scanValue(v: unknown, path: string, out: Hit[] = []): Hit[] {
   }
   if (Array.isArray(v)) { v.forEach((x, i) => scanValue(x, `${path}[${i}]`, out)); return out; }
   if (typeof v === 'object') {
-    for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+    const obj = v as Record<string, unknown>, start = out.length;
+    const child = (k: string) => path ? `${path}.${k}` : k;
+    for (const [k, x] of Object.entries(obj)) {
       out.push(...scanText(k, `${path}.[field name]`));
-      scanValue(x, path ? `${path}.${k}` : k, out);
+      scanValue(x, child(k), out);
+    }
+    // A sibling currency that is not ZEC makes "price" / "total" a fiat amount, not a Zcash one
+    const cur = obj.currency ?? obj.currency_code ?? obj.currencyCode ?? obj.ccy;
+    if (typeof cur === 'string' && !/^(zec|taz|zats?|zatoshis?)$/i.test(cur.trim())) {
+      for (let i = out.length - 1; i >= start; i--) if (out[i].cls === 'amount' && out[i].kind === 'amount' && Object.keys(obj).some(k => out[i].path === child(k))) out.splice(i, 1);
+    }
+    // A decimal beside a checksum-verified address in the same object is that payment's amount, whatever the
+    // field is called ({ to: <address>, v: 0.42 }). Integers are left alone: they are ids and counts far more often.
+    if (Object.keys(obj).some(k => out.slice(start).some(h => h.cls === 'address' && h.proof === 'checksum' && h.path === child(k)))) {
+      for (const [k, x] of Object.entries(obj)) {
+        const s = typeof x === 'number' ? String(x) : typeof x === 'string' ? x.trim() : '';
+        if (!/^\d{1,8}\.\d{1,8}$/.test(s) || !(Number(s) > 0 && Number(s) <= 21_000_000)) continue;
+        if (out.slice(start).some(h => h.path === child(k))) continue;
+        out.push({ cls: 'amount', kind: 'amount-beside-address', proof: 'context', value: s, path: child(k) });
+      }
     }
   }
   return out;
