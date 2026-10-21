@@ -12,7 +12,7 @@ import { inspectRequest, inspectLog, isLoopback } from '../src/capture/inspect.t
 import { scanBody } from '../src/zcash/detect.ts';
 import { synth } from '../src/zcash/synth.ts';
 import { loadPolicy } from '../src/engine/policy.ts';
-import { evaluate } from '../src/engine/rules.ts';
+import { STARTUP, evaluate } from '../src/engine/rules.ts';
 import { runPolicy, scanFiles } from '../src/engine/runner.ts';
 import { compareRuns } from '../src/engine/store.ts';
 import { headline } from '../src/engine/report.ts';
@@ -85,6 +85,14 @@ test('source literals are not persisted and log policy cannot exempt secrets', t
   assert.equal(findings[0].at?.file, 'app.ts');
   assert.ok(!JSON.stringify(findings).includes(seed));
   assert.equal(findings[0].snippet, undefined);
+});
+
+test('traffic before the first scenario is blamed on app startup, not the first scenario', () => {
+  const p = loadPolicy(join(mkdtempSync(join(tmpdir(), 'zf-startup-')), 'zcashflight.yml'), 'scenarios:\n  - name: checkout\n    steps:\n      - request: POST /api/checkout\n');
+  const e = { ...request('https://registry.example.org/-/version'), scenario: STARTUP, t: 0 };
+  const findings = evaluate([e], p, [{ name: 'checkout', ok: true, steps: [], window: [0, 1] }]);
+  assert.equal(findings.length, 1);
+  assert.equal(findings[0].title, 'App startup activity revealed to a third party');
 });
 
 test('sinkhole covers immediate HTTP requests, hostname overrides and fetch redirects', { timeout: 15000 }, async t => {

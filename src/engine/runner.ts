@@ -11,7 +11,7 @@ import { startProxy } from '../capture/proxy.ts';
 import { importHar, importLog } from '../capture/importers.ts';
 import { runKey, maskString } from './mask.ts';
 import { scanText } from '../zcash/detect.ts';
-import { evaluate } from './rules.ts';
+import { STARTUP, evaluate } from './rules.ts';
 import { stateDir, nextRunNumber, saveRun } from './store.ts';
 import type { Policy } from './policy.ts';
 import type { CaptureEvent, Run, ScenarioResult } from './types.ts';
@@ -144,7 +144,8 @@ export async function runPolicy(policy: Policy, opts: RunOptions = {}): Promise<
     if (!l) continue;
     const e = JSON.parse(l);
     if (e.type === 'scenario') { current = e.name; continue; }
-    appEvents.push(current ? { ...e, scenario: current } : e);
+    // Before the first marker the app is still starting (update checks, telemetry, warm-up), not running a scenario
+    appEvents.push({ ...e, scenario: current ?? STARTUP });
   }
   rmSync(capture, { force: true });
   const loaded = new Set(appEvents.flatMap(e => (e.stack ?? []).map(l => l.file)));
