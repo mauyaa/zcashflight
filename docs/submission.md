@@ -49,7 +49,7 @@ ZcashFlight starts the app under a small in-process collector (`node --import`),
 
 ## Results
 
-Measured on 21 Oct 2026 · Windows 11 · Node 24.18.0 · commit `587edbe`; the final verification re-runs everything at the submitted commit.
+Measured on 21 Oct 2026 · Windows 11 · Node 24.18.0 · commit `7238064`, from a fresh clone (the real-chain proof in the working copy of the same commit).
 
 | What | Command | Result |
 |---|---|---|

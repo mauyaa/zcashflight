@@ -14,11 +14,11 @@ git clone https://github.com/mauyaa/zcashflight && cd zcashflight && npm run dem
 
 ### Measured, not promised
 
-Run on 21 Oct 2026 · Windows 11 · Node 24.18.0 · commit `587edbe` (the final verification below re-runs everything at the submitted commit).
+Run on 21 Oct 2026 · Windows 11 · Node 24.18.0 · commit `7238064` (tests, validation and the demo from a fresh clone; the real-chain proof in a clean checkout of the same commit).
 
 | What | Command | Result |
 |---|---|---|
-| Real Zcash chain: Zebra + Zallet regtest, real transactions | `npm run regtest` | 5 leaks found → fixes applied → all 5 closed; CI gate exit 1 → 0; 8 transactions mined (blocks 327–342) |
+| Real Zcash chain: Zebra + Zallet regtest, real transactions | `npm run regtest` | 5 leaks found → fixes applied → all 5 closed; CI gate exit 1 → 0; 8 transactions mined (blocks 343–358) |
 | Mock-wallet sample (no Docker) | `npm run demo` | 5 leaks → 0; CI gate exit 1 → 0 |
 | Detection corpus: distinct seeded exposures and look-alikes | `npm run validate` | 54 / 54 found · 0 / 26 false positives · 0 raw values stored |
 | Leak channels (base64, gzip, FormData, Blob, stream, batch, query, stdout, console) | `npm test` (`test/channels.test.ts`) | 9 / 9 reference channels found (was 3 / 9 on 21 Oct before the fix), plus ReadableStream |
@@ -117,23 +117,23 @@ With the Z3 regtest stack running ([step-by-step guide](docs/guides/regtest.md))
 npm run regtest
 ```
 
-ZecShop then takes real shielded payments, sweeps funds and issues refunds through Zallet, mined by Zebra. ZcashFlight finds the leaks in real values, the fixes are applied, and the same scenarios pass. This output is from a run on 21 Oct 2026 at commit `587edbe` (masked values are real regtest addresses and txids):
+ZecShop then takes real shielded payments, sweeps funds and issues refunds through Zallet, mined by Zebra. ZcashFlight finds the leaks in real values, the fixes are applied, and the same scenarios pass. This output is from a run on 21 Oct 2026 at commit `7238064` (masked values are real regtest addresses and txids):
 
 ```
 5 privacy leaks found.
   high     Address, amount and memo sent to analytics
            A · to analytics.example.com · server.ts:60
-           body.props.payment_request[zip321].address: uregtest1ut…hgc2 (checksum ✓)
+           body.props.payment_request[zip321].address: uregtest1vl…3fjh (checksum ✓)
            body.props.payment_request[zip321].amount: •••• (ZIP 321 ✓)
            body.props.payment_request[zip321].memo: •••• (36 chars) (ZIP 321 ✓)
   high     Transaction ID written to a log            B · to logs/server.log · server/broadcast.ts:9
   high     Memo sent to error monitoring              A · to errors.example.io · server.ts:92
   medium   Checkout activity revealed to a price API  D · to api.coingecko.com · lib/prices.ts:5
   medium   Payment sent to a transparent address      C · to 127.0.0.1:50232 · lib/refund.ts:9
-  tested:  checkout · refunds · errors · Observed: fetch (62), console (1), log files (4) · Wallet RPC sends (4)
+  tested:  checkout · refunds · errors · Observed: fetch (63), console (1), log files (4) · Log files: logs/server.log · Wallet RPC sends (4)
 …
 All 5 leaks closed. No leaks detected in these tests.
-Regtest chain: blocks 327–342, 8 non-coinbase transactions built by Zallet and mined by Zebra during this proof.
+Regtest chain: blocks 343–358, 8 non-coinbase transactions built by Zallet and mined by Zebra during this proof.
 CI gate: before fixes exit 1 (fails the build), after fixes exit 0 (passes).
 ```
 
@@ -151,7 +151,7 @@ Edit `zcashflight.yml` (where your app listens, which hosts may receive what, an
 
 ## Tests you can run
 
-| Level | Command | What it proves | Result on 21 Oct 2026 (commit `587edbe`) |
+| Level | Command | What it proves | Result on 21 Oct 2026 (commit `7238064`) |
 |---|---|---|---|
 | Unit and integration | `npm test` | Encodings against BIP-173/350 vectors; ZIP 321 against the ZIP's own examples; every corpus case; masking never stores a raw value; the body reader (encodings, caps, decompression bombs); rules, policies, comparisons, the dashboard API; ZecShop end to end with the mock wallet | 115 / 115 pass |
 | Leak channels, live | `npm test` (`test/channels.test.ts`) | The reference app sends one synthetic address or txid through each channel: JSON, base64, gzip, FormData, Blob, batch array, query string, `process.stdout`, `console.log`, plus a ReadableStream; unreadable bodies are reported, and `strict: true` fails the gate | 9 / 9 reference channels (+ stream); 4 / 4 unreadable bodies reported |
@@ -211,7 +211,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       # install your app's own dependencies here, e.g. npm ci
-      - uses: mauyaa/zcashflight@<commit-sha>   # pin to a commit whose "action" workflow is green
+      - uses: mauyaa/zcashflight@7238064c05f1d32e559ac0c136bf1176246e5123   # v0.1.0 code; its "action" workflow is green
         with: { dir: ., fail-on: medium, sarif: zcashflight.sarif }
       - uses: github/codeql-action/upload-sarif@v3
         if: always()

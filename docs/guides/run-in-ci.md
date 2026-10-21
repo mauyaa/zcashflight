@@ -31,7 +31,7 @@ last_reviewed: 2026-10-21
        steps:
          - uses: actions/checkout@v4
          # install your app's own dependencies here, e.g. npm ci
-         - uses: mauyaa/zcashflight@v0
+         - uses: mauyaa/zcashflight@7238064c05f1d32e559ac0c136bf1176246e5123   # a commit whose "action" workflow is green
            with:
              dir: .
              fail-on: medium
@@ -42,7 +42,7 @@ last_reviewed: 2026-10-21
              sarif_file: zcashflight.sarif
    ```
 
-   Replace `mauyaa/zcashflight@v0` with the repository and tag you use. Until there's a tagged release, check the tool out next to your code and call it directly:
+   Pin the action to a full commit SHA, as above (there is no release tag yet). Or check the tool out next to your code and call it directly:
 
    ```yaml
          - uses: actions/checkout@v4
