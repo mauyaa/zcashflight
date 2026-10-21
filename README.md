@@ -2,13 +2,34 @@
 
 # ZcashFlight — privacy tests for Zcash apps
 
-**Run a privacy test. See the evidence. Fix the exposure. Verify the result.**
+**A CLI and GitHub Action that runs your Zcash app's real flows and catches leaked addresses, amounts, memos and transaction IDs before you ship.**
 
-ZcashFlight runs your Zcash app's real flows (checkout, refunds, errors) and checks every outbound request, console line and log file against a privacy policy. When an address, amount, memo, transaction ID or key escapes to somewhere it shouldn't, you get the masked evidence, the line of code that sent it, and a fix. Then the same tests run again to prove it's closed.
+A shielded payment hides who paid whom and how much on chain, but the app around it can still send the address to analytics, the txid to a log, or the memo to an error tracker. ZcashFlight starts your app, drives its checkout, refund and error flows, and inspects every outbound request, console line, stdout write and log file. Each leak comes with masked evidence, the line of code that sent it, and a fix; then the same tests run again to prove it's closed, and the CI gate keeps it closed.
+
+**For** merchant and payment backends, bots, explorers and web front ends. **Not for** mobile or Rust wallets directly: those are covered only through the [proxy](docs/guides/non-node-apps.md) (plain HTTP in full, HTTPS host only) or a [HAR export](docs/guides/browser-wallets.md).
+
+```bash
+git clone https://github.com/mauyaa/zcashflight && cd zcashflight && npm run demo
+```
+
+### Measured, not promised
+
+Run on 21 Oct 2026 · Windows 11 · Node 24.18.0 · commit `587edbe` (the final verification below re-runs everything at the submitted commit).
+
+| What | Command | Result |
+|---|---|---|
+| Real Zcash chain: Zebra + Zallet regtest, real transactions | `npm run regtest` | 5 leaks found → fixes applied → all 5 closed; CI gate exit 1 → 0; 8 transactions mined (blocks 327–342) |
+| Mock-wallet sample (no Docker) | `npm run demo` | 5 leaks → 0; CI gate exit 1 → 0 |
+| Detection corpus: distinct seeded exposures and look-alikes | `npm run validate` | 54 / 54 found · 0 / 26 false positives · 0 raw values stored |
+| Leak channels (base64, gzip, FormData, Blob, stream, batch, query, stdout, console) | `npm test` (`test/channels.test.ts`) | 9 / 9 reference channels found (was 3 / 9 on 21 Oct before the fix), plus ReadableStream |
+| Unreadable bodies | `npm test` | reported as uninspected, never as clean; `strict: true` fails the gate |
+| Everything | `npm test` | 114 / 114 pass |
+
+These are synthetic fixtures and a deliberately leaky sample app built for this repository. **No independent project has been tested yet** (see [tested on real projects](#tested-on-real-projects)), and a clean run means no leaks were detected in the tested scenarios, never a privacy guarantee.
+
+**Live site:** [zcashflight.vercel.app](https://zcashflight.vercel.app) is a recorded replay of the sample app, not a scanner: it can't test your project. The real tool runs on your machine.
 
 **Status:** prototype · v0.1.0 · Node 22.18 or later · Windows, macOS, Linux · MIT licence · built for [ZECATHON 2026](https://thezecathon.com), Core & Tooling track
-
-**Live demo:** [zcashflight.vercel.app](https://zcashflight.vercel.app), a recorded run against the ZecShop sample app.
 
 ![ZcashFlight showing five leaks found in the ZecShop sample, each with its severity](docs/images/findings.png)
 
@@ -96,22 +117,23 @@ With the Z3 regtest stack running ([step-by-step guide](docs/guides/regtest.md))
 npm run regtest
 ```
 
-ZecShop then takes real shielded payments, sweeps funds and issues refunds through Zallet, mined by Zebra. ZcashFlight finds the leaks in real values, the fixes are applied, and the same scenarios pass. This output is from a run on 20 Oct 2026 (masked values are real regtest addresses and txids):
+ZecShop then takes real shielded payments, sweeps funds and issues refunds through Zallet, mined by Zebra. ZcashFlight finds the leaks in real values, the fixes are applied, and the same scenarios pass. This output is from a run on 21 Oct 2026 at commit `587edbe` (masked values are real regtest addresses and txids):
 
 ```
 5 privacy leaks found.
   high     Address, amount and memo sent to analytics
            A · to analytics.example.com · server.ts:60
-           body.props.payment_request[zip321].address: uregtest10f…fhna (checksum ✓)
+           body.props.payment_request[zip321].address: uregtest1ut…hgc2 (checksum ✓)
            body.props.payment_request[zip321].amount: •••• (ZIP 321 ✓)
            body.props.payment_request[zip321].memo: •••• (36 chars) (ZIP 321 ✓)
   high     Transaction ID written to a log            B · to logs/server.log · server/broadcast.ts:9
   high     Memo sent to error monitoring              A · to errors.example.io · server.ts:92
   medium   Checkout activity revealed to a price API  D · to api.coingecko.com · lib/prices.ts:5
   medium   Payment sent to a transparent address      C · to 127.0.0.1:50232 · lib/refund.ts:9
+  tested:  checkout · refunds · errors · Observed: fetch (62), console (1), log files (4) · Wallet RPC sends (4)
 …
 All 5 leaks closed. No leaks detected in these tests.
-Regtest chain: blocks 276–291, 8 non-coinbase transactions built by Zallet and mined by Zebra during this proof.
+Regtest chain: blocks 327–342, 8 non-coinbase transactions built by Zallet and mined by Zebra during this proof.
 CI gate: before fixes exit 1 (fails the build), after fixes exit 0 (passes).
 ```
 
@@ -129,28 +151,67 @@ Edit `zcashflight.yml` (where your app listens, which hosts may receive what, an
 
 ## Tests you can run
 
-| Level | Command | What it proves | Result on 20 Oct 2026 |
+| Level | Command | What it proves | Result on 21 Oct 2026 (commit `587edbe`) |
 |---|---|---|---|
-| Unit and integration | `npm test` | Encodings against BIP-173/350 vectors; ZIP 321 against the ZIP's own examples; masking never stores a raw value; rules, policies, comparisons, the dashboard API; ZecShop end to end with the mock wallet | 55 / 55 pass |
-| Detection corpus | `npm run validate` | 19 seeded exposures must be found and 8 look-alikes (approved wallet RPC, shielding coinbase, a transparent payout the policy allows, hashes, prose…) must stay silent | 19 / 19 found · 0 / 8 false positives · 0 raw values stored |
+| Unit and integration | `npm test` | Encodings against BIP-173/350 vectors; ZIP 321 against the ZIP's own examples; every corpus case; masking never stores a raw value; the body reader (encodings, caps, decompression bombs); rules, policies, comparisons, the dashboard API; ZecShop end to end with the mock wallet | 114 / 114 pass |
+| Leak channels, live | `npm test` (`test/channels.test.ts`) | The reference app sends one synthetic address or txid through each channel: JSON, base64, gzip, FormData, Blob, batch array, query string, `process.stdout`, `console.log`, plus a ReadableStream; unreadable bodies are reported, and `strict: true` fails the gate | 9 / 9 reference channels (+ stream); 4 / 4 unreadable bodies reported |
+| Non-Node proxy, live | `npm test` (`test/proxy.test.ts`) | A Python app: plain-HTTP leak found; its HTTPS request reported as uninspected (host only) | pass (skipped with a reason if no Python 3) |
+| Detection corpus | `npm run validate` | 54 distinct seeded exposures must be found and 26 look-alikes must stay silent (file and commit hashes, JWTs, Bitcoin and Ethereum addresses, fiat totals, ordinary base64, invalid ZIP 321 URIs…) | 54 / 54 found · 0 / 26 false positives · 0 raw values stored |
 | Before / after (mock wallet) | `npm run demo` | The leaky sample fails the CI gate, the fixed one passes | exit 1 → exit 0 |
 | Before / after (real chain) | `npm run regtest` | The same, against Zebra + Zallet regtest with real transactions | exit 1 → exit 0, 8 transactions mined |
-| Types and build | `npm run typecheck` · `npm run build` | Strict TypeScript; the npm package builds and runs from `dist/` | pass |
-| Layout | [`test/ui-audit.js`](test/ui-audit.js) in the browser | 18 dashboard screens at 10 sizes from 320 to 1920 px: no sideways scroll, no hidden overflow, every target at least 24 px | 18 / 18 at every size |
+| Types, build and package | `npm run typecheck` · `npm run build` · `npm pack` | Strict TypeScript; the packed tarball installs into an empty project and runs `version`, `init`, `synth` and `run` from `dist/` | pass |
+| Layout | [`test/ui-audit.js`](test/ui-audit.js) in a browser | 18 dashboard screens at 11 sizes from 320 to 1920 px: no sideways scroll, no hidden overflow, every target at least 24 px | 18 / 18 at every size |
 
-CI runs typecheck, tests, validation, the demo and a built-package run on Windows, macOS and Linux with Node 22 and 24 ([workflow](.github/workflows/ci.yml)). The regtest proof needs Docker and runs locally.
+CI runs typecheck, tests, validation, the demo and a built-package run on Windows, macOS and Linux with Node 22 and 24 ([workflow](.github/workflows/ci.yml)), and uses the action itself the way another repository would ([action workflow](.github/workflows/action-test.yml)). The regtest proof needs Docker and runs locally.
 
 ## Detection surfaces
 
 | Surface | Covered | How |
 |---|---|---|
-| Outbound `fetch`, `http`, `https` from a Node app | Yes, full URL, headers (not credentials) and body | In-process collector loaded with `node --import` |
-| Console output | Yes | Same collector |
+| `fetch`, `node:http`, `node:https` from a Node app | Yes: URL, headers (never credentials) and body | In-process collector loaded with `node --import` |
+| Request bodies | string, bytes, `URLSearchParams`, `Blob`, `FormData`, `ReadableStream`, `Request`; gzip / deflate / br; base64 values. Up to 5 MB each | [Bodies that need decoding](docs/reference/detection.md#bodies-that-need-decoding) |
+| `console.*`, `process.stdout` / `stderr`, raw writes to fd 1 / 2 | Yes | Same collector; the app's own output is passed through unchanged |
 | Log files you list | Yes | Tailed during the run |
-| Wallet JSON-RPC sends (`z_sendmany`, `sendtoaddress`, `sendmany`) | Yes, recipients' pools and privacy policy | Parsed from the captured request |
-| Non-Node apps (Rust, Go, Python…) | Plain HTTP in full; HTTPS host only (never decrypted) | Local proxy via `HTTP(S)_PROXY` |
-| Browser wallets and front ends | Yes, offline | HAR export: `zcashflight scan file.har` |
-| IP addresses, transport timing, mobile apps | No | Out of scope; see below |
+| Wallet JSON-RPC sends (`z_sendmany`, `sendtoaddress`, `sendmany`, `z_shieldcoinbase`) | Yes: recipients' pools and privacy policy | Parsed from the captured request |
+| Node child processes | Yes, when they inherit `NODE_OPTIONS` (the default) | Observed with `npm start` spawning `node` |
+| Non-Node apps (Rust, Go, Python…) | Plain HTTP in full; HTTPS host only, reported as uninspected | Local proxy via `HTTP(S)_PROXY`; tested with a Python app |
+| Browser wallets and front ends | Offline | HAR export: `zcashflight scan file.har` |
+
+**What ZcashFlight can't see is never reported as clean.** A body it can't read (unknown type, over 5 MB, malformed or unsupported compression, binary, an encrypted HTTPS tunnel) is listed under "Not inspected" in the CLI, reports, SARIF tool notifications and the dashboard; with `strict: true` it fails the CI gate.
+
+### Not tested
+
+- **Not instrumented at all:** `node:http2`, WebSocket, raw TCP/TLS/UDP sockets (`node:net`, `node:tls`, `node:dgram`), undici used directly (not through global `fetch`), worker threads, child processes that are not Node (`curl`, …). Every live report lists these.
+- **Not decrypted:** HTTPS bodies through the proxy (host only). ZcashFlight installs no certificate authority.
+- **Not in scope:** IP addresses and transport timing; mobile apps; code paths your scenarios don't exercise; what the app's own stdout, log files and third-party logging sinks receive (ZcashFlight inspects them but does not rewrite or sanitise them).
+- **Detection limits:** an amount is recognised by its field name (`amount`, `zats`, `price`…), a ZEC/TAZ/zats unit, a ZIP 321 request, or a decimal beside an address; a bare number with none of these is not. `price` / `total` with no currency field are treated as amounts. Unified-address receivers are resolved by the wallet (`z_listunifiedreceivers`), not decoded locally.
+- **Mainnet:** the live proofs use regtest and synthetic identifiers: no real funds, users or production endpoints. Mainnet encodings (`u1…`, `zs1…`, `t1…`, `tex1…`, `uview1…`, mainnet spending keys) are recognised and covered by the corpus with synthetic values; that shows the detectors parse them, not that every mainnet flow is covered.
+
+## Tested on real projects
+
+None yet. Every result above comes from this repository's own sample app and fixtures. Independent open-source Zcash projects have been shortlisted; case studies will be added here only after they are actually run, in an isolated environment with synthetic data, and are safe to publish.
+
+## Use it in CI
+
+```yaml
+# .github/workflows/privacy.yml
+name: privacy
+on: pull_request
+jobs:
+  zcashflight:
+    runs-on: ubuntu-latest
+    permissions: { contents: read, security-events: write }
+    steps:
+      - uses: actions/checkout@v5
+      # install your app's own dependencies here, e.g. npm ci
+      - uses: mauyaa/zcashflight@<commit-sha>   # pin to a commit whose "action" workflow is green
+        with: { dir: ., fail-on: medium, sarif: zcashflight.sarif }
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with: { sarif_file: zcashflight.sarif }
+```
+
+The action is tested in this repository by using it exactly as another repository would ([`action-test.yml`](.github/workflows/action-test.yml): the leaky sample must fail, the fixed one must pass, strict mode must fail on unreadable bodies). Use from a separate repository has not been verified yet. More: [run it in CI](docs/guides/run-in-ci.md).
 
 ## Privacy of the tool itself
 
@@ -164,7 +225,7 @@ It isn't a network sandbox or a general-purpose secret scrubber: use test data a
 
 ## Limitations
 
-ZcashFlight checks the observable behaviour of the scenarios you give it. It doesn't decrypt shielded transactions, deanonymise anyone, scan other people's wallets, or provide network anonymity (for that, see Nym or Tor). It can't see IP addresses or transport timing, or code paths your scenarios don't exercise. Unified-address receivers are resolved by the wallet (`z_listunifiedreceivers`), not decoded locally. A clean run means no leaks were detected in these tests, not that an app is private, and every report lists what was not tested.
+ZcashFlight checks the observable behaviour of the scenarios you give it. It doesn't decrypt shielded transactions, deanonymise anyone, scan other people's wallets, or provide network anonymity (for that, see Nym or Tor). A clean run means no leaks were detected in these tests, not that an app is private, and every report lists what was not tested ([full list](#not-tested)).
 
 ## Documentation
 
