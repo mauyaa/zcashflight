@@ -12,6 +12,12 @@ A shielded payment hides who paid whom and how much on chain, but the app around
 git clone https://github.com/mauyaa/zcashflight && cd zcashflight && npm run demo
 ```
 
+In your own project (published on npm as [`zcashflight`](https://www.npmjs.com/package/zcashflight), no runtime dependencies):
+
+```bash
+npx zcashflight init
+```
+
 ### Measured, not promised
 
 Run on 21 Oct 2026 · Windows 11 · Node 24.18.0 · commit `7238064` (tests, validation and the demo from a fresh clone; the real-chain proof in a clean checkout of the same commit).

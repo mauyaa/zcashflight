@@ -13,6 +13,7 @@ last_reviewed: 2026-10-21
 
 **Track:** Core & Tooling
 **Repository:** <https://github.com/mauyaa/zcashflight> (MIT)
+**npm:** <https://www.npmjs.com/package/zcashflight> (`npx zcashflight init`)
 **Recorded replay:** <https://zcashflight.vercel.app> (replays a recorded run of the sample app; it does not scan anything)
 **Video:** to be added after recording
 
