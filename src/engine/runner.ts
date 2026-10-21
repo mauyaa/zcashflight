@@ -9,7 +9,8 @@ import { connect } from 'node:net';
 import { inspectLog } from '../capture/inspect.ts';
 import { startProxy } from '../capture/proxy.ts';
 import { importHar, importLog } from '../capture/importers.ts';
-import { runKey } from './mask.ts';
+import { runKey, maskString } from './mask.ts';
+import { scanText } from '../zcash/detect.ts';
 import { evaluate } from './rules.ts';
 import { stateDir, nextRunNumber, saveRun } from './store.ts';
 import type { Policy } from './policy.ts';
@@ -183,26 +184,69 @@ function buildRun(policy: Policy, raw: CaptureEvent[], results: ScenarioResult[]
       hosts: [...new Set(requests.map(e => e.host!).filter(Boolean))].sort(),
     },
     findings,
-    coverage: m.imported ? {
-      tested: [`Imported: ${results[0].description}`, ...(policy.transactions.shieldedOnly ? ['Wallet RPC sends found in the import'] : [])],
-      notTested: ['Anything not in the imported files', ...policy.notTested],
-    } : {
-      tested: [
-        ...results.map(r => `${r.name}${r.ok ? '' : ' (incomplete)'}`),
-        'Outbound fetch and http(s) requests from the app process' + (policy.app.proxy ? ', plus traffic through the local proxy' : ''),
-        'Console output' + (policy.logs.length ? ' and ' + policy.logs.map(l => l.path).join(', ') : ''),
-        ...(policy.transactions.shieldedOnly ? ['Wallet RPC sends (z_sendmany, sendtoaddress, sendmany)'] : []),
-      ],
-      notTested: [
-        ...(m.skipped ?? []).map(s => `${s} (not run)`),
-        ...(policy.app.proxy ? ['HTTPS bodies through the proxy (host only; not decrypted)'] : []),
-        ...policy.notTested,
-      ],
-    },
+    coverage: coverage(policy, events, results, m),
     fingerprint: fingerprint(policy.hash, findings.map(f => f.id)),
   };
   saveRun(root, run);
   return run;
+}
+
+// Surfaces ZcashFlight does not hook at all. Traffic through them is invisible, so every live report lists them.
+export const NOT_INSTRUMENTED = 'Not instrumented, so not seen: node:http2, WebSocket, raw TCP/TLS/UDP sockets (node:net, node:tls, node:dgram), undici used directly, worker threads, and child processes that are not Node (Node children are covered only when they inherit NODE_OPTIONS)';
+
+function coverage(policy: Policy, events: CaptureEvent[], results: ScenarioResult[], m: BuildMeta): Run['coverage'] {
+  // Anything seen but not readable: grouped by what, why and where it was going; never treated as clean
+  const scenarioAt = (t: number) => {
+    const inside = results.find(r => t >= r.window[0] && (!r.window[1] || t <= r.window[1]));
+    if (inside) return inside.name;
+    let s = results[0]?.name ?? ''; for (const r of results) if (t >= r.window[0] - 5) s = r.name; return s;
+  };
+  const groups = new Map<string, { what: string; reason: string; destination: string; count: number; scenarios: string[] }>();
+  for (const e of events) for (const u of e.uninspected ?? []) {
+    const destination = e.host || e.source || 'unknown destination';
+    const k = [u.what, u.reason, destination].join('|');
+    const g = groups.get(k) ?? { ...u, destination, count: 0, scenarios: [] };
+    g.count++;
+    const s = scenarioAt(e.t); if (s && !g.scenarios.includes(s)) g.scenarios.push(s);
+    groups.set(k, g);
+  }
+  const uninspected = [...groups.values()];
+  const unread = uninspected.map(u => `${u.count} ${u.what} to ${u.destination}: ${u.reason}`);
+  if (m.imported) return {
+    tested: [`Imported: ${results[0].description}`, ...(policy.transactions.shieldedOnly ? ['Wallet RPC sends found in the import'] : [])],
+    notTested: [...unread, 'Anything not in the imported files', ...policy.notTested],
+    uninspected, channels: [],
+  };
+  // Channels actually observed in this run, so a clean result never claims a channel nothing went through
+  const count = (f: (e: CaptureEvent) => boolean) => events.filter(f).length;
+  const logFile = (e: CaptureEvent) => e.type === 'log' && !!e.source && !/^(console\.|process\.)/.test(e.source);
+  const channels = [
+    { name: 'fetch', count: count(e => e.via === 'fetch') },
+    { name: 'node:http / node:https', count: count(e => e.via === 'http') },
+    { name: 'local proxy', count: count(e => e.via === 'proxy') },
+    { name: 'console', count: count(e => /^console\./.test(e.source ?? '')) },
+    { name: 'process.stdout / stderr', count: count(e => /^process\./.test(e.source ?? '')) },
+    { name: 'log files', count: count(logFile) },
+  ];
+  const seen = channels.filter(c => c.count), hooked = channels.filter(c => !c.count && (c.name !== 'local proxy' || policy.app.proxy) && (c.name !== 'log files' || policy.logs.length));
+  const rpcSends = count(e => !!e.rpc);
+  return {
+    tested: [
+      ...results.map(r => `${r.name}${r.ok ? '' : ' (incomplete)'}`),
+      ...(seen.length ? [`Observed: ${seen.map(c => `${c.name} (${c.count})`).join(', ')}`] : []),
+      ...(policy.logs.length ? [`Log files: ${policy.logs.map(l => l.path).join(', ')}`] : []),
+      ...(policy.transactions.shieldedOnly && rpcSends ? [`Wallet RPC sends (${rpcSends})`] : []),
+    ],
+    notTested: [
+      ...unread,
+      ...(m.skipped ?? []).map(s => `${s} (not run)`),
+      ...(hooked.length ? [`Hooked, but nothing went through them in these scenarios: ${hooked.map(c => c.name).join(', ')}`] : []),
+      ...(policy.app.proxy ? ['HTTPS bodies through the proxy (host only; not decrypted)'] : []),
+      NOT_INSTRUMENTED,
+      ...policy.notTested,
+    ],
+    uninspected, channels,
+  };
 }
 
 /** Is anything already accepting connections where the app should be? A TCP probe, so any server counts. */
@@ -237,7 +281,8 @@ async function waitReady(policy: Policy, child: ChildProcess | undefined, err: (
   }
   throw new StartError(`${policy.app.name} did not answer ${policy.app.ready} within ${policy.app.timeoutMs / 1000}s`, tail(err()));
 }
-const tail = (s: string) => s.trim().split(/\r?\n/).slice(-6).join('\n');
+// The app's own stderr can carry protected values: mask before it is shown or stored as an error detail
+const tail = (s: string) => { const t = s.trim().split(/\r?\n/).slice(-6).join('\n'); return maskString(t, scanText(t)); };
 
 function killTree(child: ChildProcess) {
   if (child.exitCode !== null || !child.pid) return;

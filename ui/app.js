@@ -210,7 +210,8 @@
           '<div class="spine"><div class="stop ok"><h4>Tested</h4><p>'+esc(run.scenarios.map(function(s){return s.name}).join(', '))+'. '+pl(run.stats.requests,'request')+' and '+pl(run.stats.logs,'log line')+', masked on this machine; '+run.stats.sinkholed+' third-party calls kept off the network.</p></div>'+
           (c&&c.closed.length?'<div class="stop ok"><h4>Closed</h4><p>'+c.closed.map(function(f){return '<s>'+esc(split(f.title)[0])+'</s>'}).join(' · ')+'</p></div>':'')+
           (open.length?'<div class="stop"><h4>Still open</h4><p>'+open.map(function(f){return esc(f.title)}).join(' · ')+'</p></div>':'')+
-          '<div class="stop"><h4>Not tested</h4><p>'+esc(run.coverage.notTested.join('. '))+'.</p></div></div>'+
+          ((run.coverage.uninspected||[]).length?'<div class="stop"><h4>Not inspected</h4><p>'+run.coverage.uninspected.map(function(u){return u.count+' '+esc(u.what)+' to '+esc(u.destination)+' ('+esc(u.reason)+')'}).join('. ')+'. These are gaps in this run, not leaks.</p></div>':'')+
+          '<div class="stop"><h4>Not tested</h4><p>'+esc(run.coverage.notTested.slice((run.coverage.uninspected||[]).length).join('. '))+'.</p></div></div>'+
           '<div class="row"><button class="btn primary" data-go="5">Done <span aria-hidden="true">→</span></button>'+reportLinks(run)+'</div>';
       }
       if(!c||!S.after)return eyebrow(4)+'<h2>'+U.replace('{w}','No leaks')+' detected.</h2><p class="sub">'+esc(cap(scenarioList()))+' ran with no detected leaks across the covered flows.</p><div class="row"><button class="btn primary" data-act="report">View the report</button><button class="link q" data-go="5">Skip</button></div>';

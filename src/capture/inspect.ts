@@ -7,6 +7,7 @@ import { maskHit, maskString } from '../engine/mask.ts';
 import type { CaptureEvent, Location, RpcCall } from '../engine/types.ts';
 import { isIP } from 'node:net';
 import { realpathSync } from 'node:fs';
+import type { Uninspected } from './body.ts';
 
 const SENSITIVE_HEADERS = /^(authorization|cookie|x-api-key|proxy-authorization)$/i;
 const MAX_LINE = 400;
@@ -19,6 +20,9 @@ export interface RawRequest {
   via: CaptureEvent['via'];
   stack?: Location[];
   sinkholed?: boolean;
+  contentType?: string;        // when the body was re-encoded for scanning (FormData is scanned as JSON)
+  decoded?: string;            // content-encoding or form decoding that was undone before scanning
+  uninspected?: Uninspected[]; // parts of this request ZcashFlight could not read
 }
 
 let seq = 0;
@@ -35,13 +39,16 @@ export function inspectRequest(r: RawRequest, key: string): CaptureEvent {
   const stack = r.stack ?? [];
   let host = '';
   try { host = new URL(r.url).host.toLowerCase(); } catch { /* relative or bad url */ }
-  const ct = Object.entries(r.headers).find(([k]) => k.toLowerCase() === 'content-type')?.[1] ?? '';
+  const ct = r.contentType ?? Object.entries(r.headers).find(([k]) => k.toLowerCase() === 'content-type')?.[1] ?? '';
   const headerHits: Hit[] = [];
   for (const [k, v] of Object.entries(r.headers)) {
     if (SENSITIVE_HEADERS.test(k)) continue; // credentials are never inspected or recorded
     headerHits.push(...scanText(String(v), `header.${k.toLowerCase()}`));
   }
-  const hits = uniqueHits([...scanUrl(r.url), ...headerHits, ...scanBody(r.body, ct)]);
+  // a body that had to be decoded first says so in its evidence path: body[gzip].address, body[form-data].address
+  const tag = r.decoded === 'multipart/form-data' ? 'form-data' : r.decoded;
+  const bodyHits = scanBody(r.body, ct).map(h => tag && h.path.startsWith('body') ? { ...h, path: `body[${tag}]` + h.path.slice(4) } : h);
+  const hits = uniqueHits([...scanUrl(r.url), ...headerHits, ...bodyHits]);
   return {
     seq: nextSeq(), t: Date.now(), type: 'request',
     method: r.method.toUpperCase(), url: maskedUrl(r.url, hits), host, loopback: isLoopback(host),
@@ -49,6 +56,8 @@ export function inspectRequest(r: RawRequest, key: string): CaptureEvent {
     fields: bodyFields(r.body, ct)?.map(p => maskString(p, [...hits, ...scanText(p)])),
     bytes: Buffer.byteLength(r.body),
     sinkholed: r.sinkholed, via: r.via,
+    ...(r.decoded ? { decoded: r.decoded } : {}),
+    ...(r.uninspected?.length ? { uninspected: r.uninspected } : {}),
     rpc: parseRpc(r.body),
     hits: hits.map(h => maskHit(h, key)),
     ...(stack.length ? { at: stack[0], stack } : {}),

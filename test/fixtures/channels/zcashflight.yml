@@ -1,0 +1,46 @@
+# Policy for the leak-channel reference app: the nine reference channels, plus a ReadableStream body.
+# One scenario per channel; analytics may receive nothing.
+version: 1
+network: testnet
+app:
+  name: channels
+  start: node app.ts
+  url: http://127.0.0.1:4700
+  ready: /health
+protect: [addresses, amounts, memos, transaction IDs, viewing keys, spending keys, seed phrases]
+destinations:
+  - host: analytics.example.com
+    purpose: Product analytics. Event names only.
+    allow: []
+sinkhole: true
+scenarios:
+  - name: control-json
+    steps:
+      - request: GET /control-json
+  - name: base64-body
+    steps:
+      - request: GET /base64-body
+  - name: gzip-body
+    steps:
+      - request: GET /gzip-body
+  - name: formdata
+    steps:
+      - request: GET /formdata
+  - name: blob
+    steps:
+      - request: GET /blob
+  - name: batch-array
+    steps:
+      - request: GET /batch-array
+  - name: query-string
+    steps:
+      - request: GET /query-string
+  - name: stdout-write
+    steps:
+      - request: GET /stdout-write
+  - name: console-log
+    steps:
+      - request: GET /console-log
+  - name: stream-body
+    steps:
+      - request: GET /stream-body

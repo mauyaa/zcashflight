@@ -10,6 +10,7 @@ export interface MaskedHit {
   pool?: Pool;
   proof: 'checksum' | 'context' | 'wordlist' | 'zip321';
   path: string;
+  decoded?: 'base64';  // found inside a base64-encoded value (the encoded value is masked as a whole)
   masked: string;  // safe-to-display form, e.g. "utest1c9…k3fz" or "[redacted seed phrase]"
   ref: string;     // keyed hash with a per-run key: links repeats of one value inside a run, unlinkable across runs
 }
@@ -37,6 +38,8 @@ export interface CaptureEvent {
   bytes?: number;
   sinkholed?: boolean;
   via?: 'fetch' | 'http' | 'proxy' | 'har';
+  decoded?: string;      // encoding undone before scanning: gzip, deflate, br, multipart/form-data
+  uninspected?: { what: string; reason: string }[];  // parts ZcashFlight could not read: reported, never treated as clean
   rpc?: RpcCall;
   // log
   source?: string;       // 'console.debug' or a log file path
@@ -94,8 +97,15 @@ export interface Run {
   error?: string;
   scenarios: ScenarioResult[];
   stats: { requests: number; external: number; sinkholed: number; logs: number; hosts: string[] };
+  // tested / notTested: what reports show. uninspected: traffic that was seen but could not be read
+  // (never counted as clean; fails the CI gate under `strict: true`). channels: what was actually observed.
   findings: Finding[];
-  coverage: { tested: string[]; notTested: string[] };
+  coverage: {
+    tested: string[];
+    notTested: string[];
+    uninspected?: { what: string; reason: string; destination: string; count: number; scenarios: string[] }[];
+    channels?: { name: string; count: number }[];
+  };
   fingerprint: string;
 }
 

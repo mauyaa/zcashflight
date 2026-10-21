@@ -38,6 +38,7 @@ export interface Policy {
   sinkhole: boolean;
   scenarios: Scenario[];
   notTested: string[];     // honest coverage notes shown in every report
+  strict: boolean;         // with --ci, traffic ZcashFlight could not inspect fails the gate (exit 1)
 }
 
 export class PolicyError extends Error {}
@@ -100,6 +101,7 @@ export function loadPolicy(file: string, source?: string): Policy {
     sinkhole: y.sinkhole !== false,
     scenarios,
     notTested: (y.not_tested ?? ['Network metadata such as IP address and request timing at the transport layer']).map(String),
+    strict: y.strict === true,
   };
 }
 

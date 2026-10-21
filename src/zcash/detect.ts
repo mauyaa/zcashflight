@@ -8,11 +8,15 @@ import { findPaymentRequests } from './zip321.ts';
 export interface Hit extends Identifier {
   value: string;   // raw value; callers mask it before it is stored anywhere
   path: string;    // where it was found: 'body.recipient', 'url.query.to', 'text'
+  encoding?: 'base64';  // found only after decoding the value that carried it
+  carrier?: string;     // that encoded value: reversible, so it is masked as a whole wherever it appears
 }
 
 const WORDS = new Set(BIP39_ENGLISH);
 const TOKEN = /[A-Za-z0-9-]{26,}/g;
-const TXID_CTX = /(?:tx_?id|txid|tx_?hash|transaction(?:_?id)?)["'\s]*[=:]\s*["']?([0-9a-f]{64})\b/gi;
+// A 64-hex value counts as a txid only near a txid keyword: right after it, or after at most two short words
+// ('paid txid <hex>', 'Transaction ID <hex>', 'broadcast ok txid=<hex>'). Bare hashes are everywhere: no keyword, no txid.
+const TXID_CTX = /\b(?:tx[ _-]?id|tx[ _-]?hash|transaction(?:[ _-]?(?:id|hash))?|broadcast(?:ed|ing)?)\b(?:[\s"'`:=#,()[\]{}<>-]{1,6}(?:[a-z]{1,10}[\s"'`:=#,()[\]{}<>-]{1,6}){0,2})([0-9a-f]{64})\b/gi;
 const AMOUNT_TXT = /\b(\d+(?:\.\d{1,8})?)\s?(ZEC|TAZ|zats?|zatoshis?)\b/g;
 const MEMO_TXT = /\bmemo["'\s]*[=:]\s*("([^"]*)"|'([^']*)'|(\S+))/gi;
 
@@ -21,6 +25,42 @@ const KEY_AMOUNT = /^(amount|amt|value|zats?|zatoshis?|zec|total|price|balance|a
 const KEY_MEMO = /^(memo|memo_?text|note|message_?memo)$/i;
 const KEY_SEED = /^(seed|seed_?phrase|mnemonic|recovery_?phrase|backup_?phrase)$/i;
 const HEX64 = /^[0-9a-f]{64}$/i;
+
+// Base64 / base64url values (Mixpanel-style `data=<base64 JSON>`). Decoded only when the alphabet and padding are
+// strict, the size is bounded and the result is printable UTF-8 text; scanned in memory, never stored.
+const B64 = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+const B64URL = /^[A-Za-z0-9_-]+$/;
+const B64_TOKEN = /[A-Za-z0-9+/_-]{24,}={0,2}/g;
+const MAX_ENCODED = 256 * 1024;
+let decodeDepth = 0;
+const utf8 = new TextDecoder('utf-8', { fatal: true });
+
+export function decodeBase64Text(value: string): string | null {
+  let s = value.trim();
+  if (s.length < 16 || s.length > MAX_ENCODED) return null;
+  if (s.includes(' ') && /^[A-Za-z0-9+/= ]+$/.test(s)) s = s.replace(/ /g, '+');   // '+' became ' ' in form decoding
+  let buf: Buffer;
+  if (B64.test(s)) buf = Buffer.from(s, 'base64');
+  else if (B64URL.test(s) && s.length % 4 !== 1) buf = Buffer.from(s, 'base64url');
+  else return null;
+  let text: string;
+  try { text = utf8.decode(buf); } catch { return null; }
+  const chars = [...text];
+  const printable = chars.filter(c => c >= ' ' || c === '\n' || c === '\r' || c === '\t').length;
+  if (!chars.length || printable / chars.length < 0.95 || !/[A-Za-z]{2}/.test(text)) return null;
+  return text;
+}
+
+/** Scan what an encoded value decodes to. Every hit inside keeps the encoded value, so that is masked too. */
+function scanDecoded(value: string, path: string): Hit[] {
+  if (decodeDepth >= 2) return [];
+  const text = decodeBase64Text(value);
+  if (!text) return [];
+  decodeDepth++;
+  try {
+    return scanBody(text, '', `${path}[base64]`).map(h => ({ ...h, encoding: 'base64' as const, carrier: h.carrier ?? value }));
+  } finally { decodeDepth--; }
+}
 
 export function scanText(text: string, path = 'text'): Hit[] {
   const hits: Hit[] = [];
@@ -47,6 +87,15 @@ export function scanText(text: string, path = 'text'): Hit[] {
     if (v && v !== 'null' && v !== 'undefined') hits.push({ cls: 'memo', kind: 'memo', proof: 'context', value: v, path });
   }
   hits.push(...seedPhrases(text, path));
+  // base64 blobs inside free text (log lines), at most a few per text
+  if (decodeDepth === 0) {
+    let n = 0;
+    for (const m of text.matchAll(B64_TOKEN)) {
+      if (n++ >= 8) break;
+      if (hits.some(h => m[0].includes(h.value) || h.value.includes(m[0]))) continue;
+      hits.push(...scanDecoded(m[0], path));
+    }
+  }
   return hits;
 }
 
@@ -87,6 +136,7 @@ export function scanValue(v: unknown, path: string, out: Hit[] = []): Hit[] {
     if (KEY_AMOUNT.test(key) && /^\d+(\.\d+)?(\s?(ZEC|TAZ|zats?))?$/i.test(v.trim()) && !found('amount')) out.push({ cls: 'amount', kind: 'amount', proof: 'context', value: v, path });
     if (KEY_MEMO.test(key) && v.trim() && !found('memo')) out.push({ cls: 'memo', kind: 'memo', proof: 'context', value: v, path });
     if (KEY_SEED.test(key) && v.trim().split(/\s+/).length >= 12 && !found('seed-phrase')) out.push({ cls: 'seed-phrase', kind: 'seed-field', proof: 'context', value: v, path });
+    if (out.length === before && decodeDepth === 0) out.push(...scanDecoded(v, path));
     return out;
   }
   if (Array.isArray(v)) { v.forEach((x, i) => scanValue(x, `${path}[${i}]`, out)); return out; }

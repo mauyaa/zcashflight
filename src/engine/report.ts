@@ -44,7 +44,9 @@ export function markdown(run: Run, cmp?: Comparison): string {
       L.push(`**Reproduce:** ${f.repro.map(r => '`' + r + '`').join(' → ')}`, '', '</details>', '');
     }
   }
-  L.push('**Tested:** ' + run.coverage.tested.join(' · '), '', '**Not tested:** ' + run.coverage.notTested.join(' · '), '');
+  const unread = run.coverage.uninspected ?? [];
+  if (unread.length) L.push('**Not inspected in this run** (coverage gaps, not findings):', '', ...unread.map(u => `- ${u.count} ${u.what} to \`${u.destination}\`: ${u.reason} (${u.scenarios.join(', ')})`), '');
+  L.push('**Tested:** ' + run.coverage.tested.join(' · '), '', '**Not tested:**', '', ...run.coverage.notTested.slice(unread.length).map(t => `- ${t}`), '');
   L.push('<sub>ZcashFlight checks observable application behaviour in these tests. It does not decrypt transactions, deanonymise users, or certify that an app is private in all circumstances.</sub>');
   return L.join('\n');
 }
@@ -58,7 +60,15 @@ export function sarif(run: Run): object {
   return {
     $schema: 'https://json.schemastore.org/sarif-2.1.0.json', version: '2.1.0',
     runs: [{
-      tool: { driver: { name: 'ZcashFlight', informationUri: REPO, rules } },
+      tool: { driver: { name: 'ZcashFlight', informationUri: REPO, rules, notifications: [{ id: 'ZF-COVERAGE', name: 'Uninspected traffic', shortDescription: { text: 'Traffic ZcashFlight saw but could not read. A coverage gap, not a finding.' } }] } },
+      // Coverage gaps are tool notifications, never results: they are not vulnerabilities and must not look like them
+      invocations: [{
+        executionSuccessful: run.status === 'complete',
+        toolExecutionNotifications: (run.coverage.uninspected ?? []).map(u => ({
+          descriptor: { id: 'ZF-COVERAGE' }, level: 'warning',
+          message: { text: `Not inspected: ${u.count} ${u.what} to ${u.destination} (${u.reason}) in ${u.scenarios.join(', ')}` },
+        })),
+      }],
       results: run.findings.map(f => ({
         ruleId: `ZF-${f.rule}`, level: level(f.severity),
         message: { text: `${f.title} (${f.destination}). ${f.remediation.summary}` },
@@ -110,6 +120,7 @@ ul{color:var(--color-text-secondary);padding-left:20px;margin:8px 0}
 li{margin:4px 0}
 a{color:var(--color-accent);text-underline-offset:3px}
 .fix{margin-top:16px}
+.gap{border-left:2px solid #d9a441;padding:4px 0 4px 16px;margin:8px 0 24px}.gap h4{font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#d9a441;margin:0 0 6px}.gap p{color:var(--color-text-muted);font-size:13px;margin:0 0 8px}.gap div{color:var(--color-text-secondary);font-size:14px;margin:4px 0}
 .cov{display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1px solid var(--color-border);padding-top:32px;margin-top:8px}
 .cov h4{font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-text-muted);margin:0 0 8px}
 .cov div div{color:var(--color-text-secondary);font-size:14px;margin:4px 0}
@@ -123,7 +134,8 @@ a{color:var(--color-accent);text-underline-offset:3px}
 <p class="meta">${plural(run.stats.requests, 'request')} and ${plural(run.stats.logs, 'log line')} inspected on this machine · ${run.stats.sinkholed} third-party requests kept off the network · hosts: ${run.stats.hosts.map(h => `<code>${esc(h)}</code>`).join(', ') || 'none'}</p>
 ${cmp && cmp.from ? `<p class="meta">Compared with run ${cmp.from}: <b>${cmp.closed.length} closed</b>, ${cmp.open.length} still open, <b>${cmp.added.length} new</b>.${cmp.closed.length ? ' Closed: ' + cmp.closed.map(f => `<s>${esc(f.title)}</s>`).join(' · ') : ''}</p>` : ''}
 ${rows}
-<section class="cov"><div><h4>Tested</h4>${run.coverage.tested.map(t => `<div>${esc(t)}</div>`).join('')}</div><div><h4>Not tested</h4>${run.coverage.notTested.map(t => `<div>${esc(t)}</div>`).join('')}</div></section>
+${(run.coverage.uninspected ?? []).length ? `<section class="gap"><h4>Not inspected in this run</h4><p>Coverage gaps, not findings: ZcashFlight saw this traffic but could not read it.</p>${run.coverage.uninspected!.map(u => `<div>${u.count} ${esc(u.what)} to <code>${esc(u.destination)}</code>: ${esc(u.reason)}</div>`).join('')}</section>` : ''}
+<section class="cov"><div><h4>Tested</h4>${run.coverage.tested.map(t => `<div>${esc(t)}</div>`).join('')}</div><div><h4>Not tested</h4>${run.coverage.notTested.slice((run.coverage.uninspected ?? []).length).map(t => `<div>${esc(t)}</div>`).join('')}</div></section>
 <p><small>All values above were masked where they were captured; raw payloads were never written to disk. ZcashFlight checks observable application behaviour in these tests. It does not decrypt transactions, deanonymise users, or certify that an app is private in all circumstances.</small></p>
 </main></body></html>`;
 }

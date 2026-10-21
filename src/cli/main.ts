@@ -59,7 +59,11 @@ function printRun(run: Run, prev?: Run) {
   }
   if (cmp?.closed.length) { for (const f of cmp.closed) console.log(`  ${lime('closed  ')} ${dim(f.title)}`); console.log(''); }
   console.log(dim('  tested:     ' + run.coverage.tested.join(' · ')));
-  console.log(dim('  not tested: ' + run.coverage.notTested.join(' · ')));
+  // uninspected traffic first and not dimmed: it is a gap in this run, not boilerplate
+  const unread = run.coverage.uninspected ?? [];
+  for (const u of unread) console.log(`  ${yellow('not tested:')} ${u.count} ${u.what} to ${u.destination} (${u.reason})`);
+  const rest = run.coverage.notTested.slice(unread.length);
+  if (rest.length) console.log(dim('  not tested: ' + rest.join('\n              ')));
   console.log('');
 }
 
@@ -83,8 +87,12 @@ function writeOut(run: Run, fmt: string, out: string | undefined, prev?: Run) {
 }
 
 /** CI gate: new findings at or above the threshold fail the build; accepted ones in zcashflight.baseline.json do not. */
-function gate(run: Run, root: string, failOn: string): number {
+function gate(run: Run, root: string, failOn: string, strict = false): number {
   if (run.status !== 'complete') return 2;
+  if (strict && run.coverage.uninspected?.length) {
+    console.error(red('strict: ') + `${run.coverage.uninspected.reduce((n, u) => n + u.count, 0)} uninspected item(s); traffic ZcashFlight cannot read fails the gate under strict: true`);
+    return 1;
+  }
   const order = ['low', 'medium', 'high', 'critical'];
   const min = order.indexOf(failOn);
   const accepted = new Set((loadBaseline(root)?.accepted ?? []).map(a => a.id));
@@ -130,7 +138,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
         if (flags.sarif) writeOut(run, 'sarif', String(flags.sarif));
         if (flags.report) writeOut(run, String(flags.report).endsWith('.html') ? 'html' : 'md', String(flags.report), prev);
         if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, markdown(run, cmp) + '\n');
-        return flags.ci ? gate(run, p.root, String(flags['fail-on'] ?? 'medium')) : run.status !== 'complete' ? 2 : 0;
+        return flags.ci ? gate(run, p.root, String(flags['fail-on'] ?? 'medium'), p.strict) : run.status !== 'complete' ? 2 : 0;
       }
       case 'scan': {
         if (!pos.length) throw new PolicyError('usage: zcashflight scan <file.har | file.log>…');
@@ -139,7 +147,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
         const run = scanFiles(p, pos.map(x => resolve(x)));
         printRun(run);
         if (flags.sarif) writeOut(run, 'sarif', String(flags.sarif));
-        return flags.ci ? gate(run, p.root, String(flags['fail-on'] ?? 'medium')) : 0;
+        return flags.ci ? gate(run, p.root, String(flags['fail-on'] ?? 'medium'), p.strict) : 0;
       }
       case 'compare': {
         const root = (policyFile(dir) ? policyFor(dir).root : dir);

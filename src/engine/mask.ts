@@ -24,9 +24,12 @@ export function maskValue(h: Pick<Hit, 'cls' | 'value' | 'kind'>): string {
   }
 }
 
+function safeEncode(s: string): string { try { return encodeURIComponent(s); } catch { return ''; } }
+
 export function maskHit(h: Hit, key: string): MaskedHit {
   return {
     cls: h.cls, kind: h.kind, network: h.network, pool: h.pool, proof: h.proof, path: maskString(h.path, scanText(h.path)),
+    ...(h.encoding ? { decoded: h.encoding } : {}),
     masked: maskValue(h),
     ref: createHmac('sha256', key).update(h.cls + ':' + h.value).digest('hex').slice(0, 8),
   };
@@ -35,6 +38,11 @@ export function maskHit(h: Hit, key: string): MaskedHit {
 /** Replace every hit's raw value inside a string with its masked form. Longest first, so substrings cannot survive. */
 export function maskString(s: string, hits: Hit[]): string {
   let out = s;
+  // An encoded carrier (base64 of a protected value) is reversible: replace it whole, before the values inside it
+  for (const h of [...hits].filter(h => h.carrier).sort((a, b) => b.carrier!.length - a.carrier!.length)) {
+    const label = `[${h.encoding} carrying ${maskValue(h)}]`, c = h.carrier!;
+    for (const form of new Set([c, c.replace(/\+/g, ' '), safeEncode(c)])) if (form) out = out.split(form).join(label);
+  }
   for (const h of [...hits].sort((a, b) => b.value.length - a.value.length)) {
     if (!h.value) continue;
     const m = maskValue(h);

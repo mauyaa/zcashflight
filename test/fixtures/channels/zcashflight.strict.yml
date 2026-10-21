@@ -1,0 +1,28 @@
+# Same bodies with strict: true, so anything uninspected fails the CI gate.
+version: 1
+network: testnet
+app:
+  name: channels (strict)
+  start: node app.ts
+  url: http://127.0.0.1:4700
+  ready: /health
+protect: [addresses, amounts, memos, transaction IDs, viewing keys, spending keys, seed phrases]
+destinations:
+  - host: analytics.example.com
+    purpose: Product analytics. Event names only.
+    allow: []
+sinkhole: true
+strict: true
+scenarios:
+  - name: async-iterable-body
+    steps:
+      - request: GET /async-iterable-body
+  - name: oversized-blob
+    steps:
+      - request: GET /oversized-blob
+  - name: gzip-bomb
+    steps:
+      - request: GET /gzip-bomb
+  - name: binary-body
+    steps:
+      - request: GET /binary-body
