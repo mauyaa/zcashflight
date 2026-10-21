@@ -23,9 +23,9 @@ Run on 21 Oct 2026 · Windows 11 · Node 24.18.0 · commit `587edbe` (the final 
 | Detection corpus: distinct seeded exposures and look-alikes | `npm run validate` | 54 / 54 found · 0 / 26 false positives · 0 raw values stored |
 | Leak channels (base64, gzip, FormData, Blob, stream, batch, query, stdout, console) | `npm test` (`test/channels.test.ts`) | 9 / 9 reference channels found (was 3 / 9 on 21 Oct before the fix), plus ReadableStream |
 | Unreadable bodies | `npm test` | reported as uninspected, never as clean; `strict: true` fails the gate |
-| Everything | `npm test` | 114 / 114 pass |
+| Everything | `npm test` | 115 / 115 pass |
 
-These are synthetic fixtures and a deliberately leaky sample app built for this repository. **No independent project has been tested yet** (see [tested on real projects](#tested-on-real-projects)), and a clean run means no leaks were detected in the tested scenarios, never a privacy guarantee.
+These are synthetic fixtures and a deliberately leaky sample app built for this repository. Two independent open-source projects have also been run, with synthetic data: one real finding, fixed and verified closed, and one clean result (see [tested on real projects](#tested-on-real-projects)). A clean run means no leaks were detected in the tested scenarios, never a privacy guarantee.
 
 **Live site:** [zcashflight.vercel.app](https://zcashflight.vercel.app) is a recorded replay of the sample app, not a scanner: it can't test your project. The real tool runs on your machine.
 
@@ -153,7 +153,7 @@ Edit `zcashflight.yml` (where your app listens, which hosts may receive what, an
 
 | Level | Command | What it proves | Result on 21 Oct 2026 (commit `587edbe`) |
 |---|---|---|---|
-| Unit and integration | `npm test` | Encodings against BIP-173/350 vectors; ZIP 321 against the ZIP's own examples; every corpus case; masking never stores a raw value; the body reader (encodings, caps, decompression bombs); rules, policies, comparisons, the dashboard API; ZecShop end to end with the mock wallet | 114 / 114 pass |
+| Unit and integration | `npm test` | Encodings against BIP-173/350 vectors; ZIP 321 against the ZIP's own examples; every corpus case; masking never stores a raw value; the body reader (encodings, caps, decompression bombs); rules, policies, comparisons, the dashboard API; ZecShop end to end with the mock wallet | 115 / 115 pass |
 | Leak channels, live | `npm test` (`test/channels.test.ts`) | The reference app sends one synthetic address or txid through each channel: JSON, base64, gzip, FormData, Blob, batch array, query string, `process.stdout`, `console.log`, plus a ReadableStream; unreadable bodies are reported, and `strict: true` fails the gate | 9 / 9 reference channels (+ stream); 4 / 4 unreadable bodies reported |
 | Non-Node proxy, live | `npm test` (`test/proxy.test.ts`) | A Python app: plain-HTTP leak found; its HTTPS request reported as uninspected (host only) | pass (skipped with a reason if no Python 3) |
 | Detection corpus | `npm run validate` | 54 distinct seeded exposures must be found and 26 look-alikes must stay silent (file and commit hashes, JWTs, Bitcoin and Ethereum addresses, fiat totals, ordinary base64, invalid ZIP 321 URIs…) | 54 / 54 found · 0 / 26 false positives · 0 raw values stored |
@@ -189,7 +189,14 @@ CI runs typecheck, tests, validation, the demo and a built-package run on Window
 
 ## Tested on real projects
 
-None yet. Every result above comes from this repository's own sample app and fixtures. Independent open-source Zcash projects have been shortlisted; case studies will be added here only after they are actually run, in an isolated environment with synthetic data, and are safe to publish.
+Run on 21 Oct 2026 against fresh local clones, with synthetic data only (no real funds, users, accounts or production endpoints; third-party calls answered locally). Both are anonymised until their maintainers have been contacted.
+
+| Project | What was exercised | Result |
+|---|---|---|
+| [A: event ticket checkout](docs/case-studies/project-a.md) (Next.js, pays through a Zcash payment processor) | the processor's signed and unsigned payment webhooks | **2 high findings:** the payment txid written to the console log next to the invoice id (which another log line ties to the attendee's email). A two-line fix closed both; the project's own tests still pass. Disclosure drafted, not sent |
+| [B: signed merchant invoices](docs/case-studies/project-b.md) (zero-dependency reference checkout) | registry, invoice signing, a refused client-supplied amount | No leaks detected in these tests |
+
+Neither run covers the whole project: project A's checkout needs a live event-platform API and was not exercised. Four other candidates were looked at and not run, because their flows need production services, operator databases or paid APIs that can't be replaced safely with synthetic data. Running project A also found a ZcashFlight bug (startup traffic was blamed on the first scenario), now fixed.
 
 ## Use it in CI
 

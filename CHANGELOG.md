@@ -18,6 +18,7 @@
 
 ### Fixed
 
+- Traffic before the first scenario (update checks, telemetry, warm-up) was blamed on the first scenario; it is now labelled *app startup*. Found by running ZcashFlight on an independent project ([case study](docs/case-studies/project-a.md)).
 - Events were sometimes credited to the next scenario when steps were fast; attribution now uses markers in the capture file (causal order).
 - A stale `dist/` in a checkout was run instead of the sources; the CLI now prefers the sources when they exist.
 - The sample's fix script writes files atomically, so an interrupted run can't leave them empty or corrupt.

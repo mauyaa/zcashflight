@@ -57,10 +57,11 @@ Measured on 21 Oct 2026 · Windows 11 · Node 24.18.0 · commit `587edbe`; the f
 | Mock-wallet sample | `npm run demo` | 5 → 0; exit 1 → 0 |
 | Detection corpus | `npm run validate` | 54 / 54 seeded exposures found · 0 / 26 false positives · 0 raw values stored |
 | Leak channels | `npm test` | 9 / 9 reference channels (base64, gzip, FormData, Blob, batch array, query string, stdout, console, JSON), from 3 / 9 before this work |
-| Whole suite | `npm test` | 114 / 114 |
+| Independent projects | `zcashflight run` on local clones | A: 2 findings → closed by a 2-line fix · B: no leaks detected |
+| Whole suite | `npm test` | 115 / 115 |
 | CI | GitHub Actions | Windows, macOS, Linux × Node 22, 24 |
 
-**Not yet:** no independent open-source Zcash project has been tested; every result comes from this repository's own sample and fixtures. A clean run means no leaks were detected in the tested scenarios, never a privacy guarantee. The full list of what is not tested is in the [README](../README.md#not-tested).
+**Independent projects** (21 Oct 2026, local clones, synthetic data only, anonymised until the maintainers are contacted): [project A](case-studies/project-a.md), an event ticket checkout, logged the payment txid next to the invoice id on every payment webhook (2 high findings; a two-line fix closed both; disclosure drafted, not sent). [Project B](case-studies/project-b.md), a signed-invoice reference checkout: no leaks detected in the tested scenarios. Neither run covers the whole project. A clean run means no leaks were detected in the tested scenarios, never a privacy guarantee. The full list of what is not tested is in the [README](../README.md#not-tested).
 
 ## Built during the hackathon
 
