@@ -1,8 +1,11 @@
 #!/usr/bin/env node
-// Runs the compiled build when installed from npm (dist/), or the TypeScript sources directly in a checkout.
-// Node strips TypeScript types natively from 22.18 / 23.6, so a checkout needs no build step.
+// Installed from npm, the package ships the compiled build (dist/) and no sources.
+// In a checkout, the TypeScript sources run directly (Node strips types natively from 22.18 / 23.6), so a stale
+// dist/ from an earlier build is never picked up by mistake. ZCASHFLIGHT_DIST=1 forces the build, to test it.
 import { existsSync } from 'node:fs';
 
+const src = new URL('../src/cli/main.ts', import.meta.url);
 const dist = new URL('../dist/cli/main.js', import.meta.url);
-const { main } = await import(existsSync(dist) ? dist.href : new URL('../src/cli/main.ts', import.meta.url).href);
+const useDist = process.env.ZCASHFLIGHT_DIST === '1' || !existsSync(src);
+const { main } = await import((useDist ? dist : src).href);
 process.exitCode = await main();

@@ -46,6 +46,7 @@ export interface CaptureEvent {
   line?: string;         // masked log text, truncated
   // both
   hits: MaskedHit[];
+  scenario?: string;      // the scenario running when this was captured (from markers in the capture file)
   at?: Location;          // innermost project frame: where the data left
   stack?: Location[];     // project frames, innermost first: who passed it there
 }

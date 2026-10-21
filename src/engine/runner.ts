@@ -2,7 +2,7 @@
 // Scan → Prove → (you Fix) → Verify: this file is Scan and Prove; compareRuns is Verify.
 
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
-import { existsSync, openSync, readSync, closeSync, statSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, openSync, readSync, closeSync, statSync, readFileSync, readdirSync, rmSync, appendFileSync } from 'node:fs';
 import { join, resolve, relative, extname } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { connect } from 'node:net';
@@ -91,6 +91,9 @@ export async function runPolicy(policy: Policy, opts: RunOptions = {}): Promise<
     const fill = (v: unknown): any => typeof v === 'string' ? v.replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? '') : Array.isArray(v) ? v.map(fill) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fill(x)])) : v;
     outer: for (const s of scenarios) {
       const r: ScenarioResult = { name: s.name, description: s.description, ok: true, steps: [], window: [Date.now(), 0] };
+      // A marker in the capture file: the app appends to the same file, so every event after this line and before the
+      // next marker happened after this scenario began. File order is causal; clocks and timer resolution don't matter.
+      appendFileSync(capture, JSON.stringify({ type: 'scenario', name: s.name }) + '\n');
       results.push(r);
       for (const st of s.steps) {
         if (opts.signal?.aborted) { status = 'incomplete'; const left = scenarios.slice(scenarios.indexOf(s) + (r.steps.length ? 1 : 0)).map(x => x.name); error = `stopped: ${left.join(' and ') || 'the last step'} didn't run`; break outer; }
@@ -135,9 +138,14 @@ export async function runPolicy(policy: Policy, opts: RunOptions = {}): Promise<
   }
 
   emit({ type: 'phase', phase: 'evaluating' });
-  const appEvents: CaptureEvent[] = existsSync(capture)
-    ? readFileSync(capture, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l) as CaptureEvent)
-    : [];
+  const appEvents: CaptureEvent[] = [];
+  let current: string | undefined;
+  if (existsSync(capture)) for (const l of readFileSync(capture, 'utf8').split('\n')) {
+    if (!l) continue;
+    const e = JSON.parse(l);
+    if (e.type === 'scenario') { current = e.name; continue; }
+    appEvents.push(current ? { ...e, scenario: current } : e);
+  }
   rmSync(capture, { force: true });
   const loaded = new Set(appEvents.flatMap(e => (e.stack ?? []).map(l => l.file)));
   for (const e of logEvents) if (!e.at) { const at = sourceMatch(root, e.line ?? '', loaded); if (at) { e.at = at; e.stack = [at]; } }
@@ -196,6 +204,7 @@ export const NOT_INSTRUMENTED = 'Not instrumented, so not seen: node:http2, WebS
 
 function coverage(policy: Policy, events: CaptureEvent[], results: ScenarioResult[], m: BuildMeta): Run['coverage'] {
   // Anything seen but not readable: grouped by what, why and where it was going; never treated as clean
+  const scenarioOfEvent = (e: CaptureEvent) => e.scenario ?? scenarioAt(e.t);
   const scenarioAt = (t: number) => {
     const inside = results.find(r => t >= r.window[0] && (!r.window[1] || t <= r.window[1]));
     if (inside) return inside.name;
@@ -207,7 +216,7 @@ function coverage(policy: Policy, events: CaptureEvent[], results: ScenarioResul
     const k = [u.what, u.reason, destination].join('|');
     const g = groups.get(k) ?? { ...u, destination, count: 0, scenarios: [] };
     g.count++;
-    const s = scenarioAt(e.t); if (s && !g.scenarios.includes(s)) g.scenarios.push(s);
+    const s = scenarioOfEvent(e); if (s && !g.scenarios.includes(s)) g.scenarios.push(s);
     groups.set(k, g);
   }
   const uninspected = [...groups.values()];

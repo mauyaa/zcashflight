@@ -124,6 +124,7 @@ function origin(root: string, g: Group, fields: string[]): Pick<Finding, 'at' | 
 }
 
 function scenarioOf(e: CaptureEvent, scenarios: ScenarioResult[]): { name: string; step?: string } {
+  if (e.scenario && scenarios.some(s => s.name === e.scenario)) return { name: e.scenario };
   // The scenario whose window contains the event; else the last one started before it (late fire-and-forget traffic).
   // Windows are back to back, so a containment test comes first: an event at the end of one step is not the next one's.
   let hit = scenarios.find(s => e.t >= s.window[0] && (!s.window[1] || e.t <= s.window[1]));

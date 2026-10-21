@@ -3,7 +3,7 @@
 //   node scripts/fixes.ts reset   copy seeded/ over lib/ and server/
 // The diff between seeded/ and fixes/ is exactly what a developer would change after reading the findings.
 
-import { cpSync, existsSync, readdirSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, readdirSync, statSync, mkdirSync, writeFileSync, renameSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,7 +19,10 @@ const changed: string[] = [];
     if (statSync(p).isDirectory()) { copy(p); continue; }
     const rel = p.slice(from.length + 1);
     mkdirSync(dirname(join(here, rel)), { recursive: true });
-    cpSync(p, join(here, rel));
+    // copy to a temporary file, then rename over the target: an interrupted run never leaves a half-written file
+    const dest = join(here, rel), tmp = dest + '.tmp-' + process.pid;
+    copyFileSync(p, tmp);
+    renameSync(tmp, dest);
     changed.push(rel.replace(/\\/g, '/'));
   }
 })(from);

@@ -1,0 +1,25 @@
+# Proxy mode with a Python app: plain HTTP is inspected in full; HTTPS is a CONNECT tunnel (host only).
+version: 1
+network: testnet
+app:
+  name: python via proxy
+  start: python app.py
+  url: http://127.0.0.1:4720
+  ready: /health
+  proxy: true
+  env:
+    PORT: 4720
+    ZF_SYNTH_ADDRESS: utest1zmjm8gdhnw7r0e0xzk77t9npm0y2x6gv00ssjna2g0g4q36xvxenu4tp7x0nyylkk8zggdx4e8mh75akdnd6u3e8sh67zfhr67zlrjclhlsxsa75axsmqm9a9r3phg88wu08rf8t7xf8hz05mwe9xnw9j0mxg2pjwk8u30awg2psuax9av   # synthetic: zcashflight synth --seed proxy-python
+protect: [addresses, amounts, memos, transaction IDs, viewing keys, spending keys, seed phrases]
+destinations:
+  - host: analytics.example.com
+    purpose: Product analytics. Event names only.
+    allow: []
+sinkhole: true
+scenarios:
+  - name: plain-http
+    steps:
+      - request: GET /plain-http
+  - name: https
+    steps:
+      - request: GET /https
