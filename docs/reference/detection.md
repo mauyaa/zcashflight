@@ -47,13 +47,29 @@ A valid request is reported field by field under the field that carried it, for 
 
 | Data class | Recognised when |
 |---|---|
-| Transaction ID | 64 hex characters in a field named `txid`, `tx_id`, `tx_hash`, `transaction_id` or `tx`, or after `txid=` / `txid:` in text. A bare 64-hex string is **not** treated as a txid, because hashes are everywhere |
-| Amount | A number in a field named `amount`, `value`, `zats`, `zatoshis`, `zec`, `total`, `price`, `balance` or `amount_zec`, or text like `1.25 ZEC`, `0.5 TAZ`, `125000 zats` |
+| Transaction ID | 64 hex characters in a field named `txid`, `tx_id`, `tx_hash`, `transaction_id` or `tx`; or in text within a short window after `txid`, `tx id`, `tx_hash`, `transaction`, `transaction id/hash` or `broadcast` (directly, or after at most two short words: `paid txid <hex>`, `Transaction ID <hex>`, `broadcast ok txid=<hex>`). A bare 64-hex string is **not** treated as a txid, because hashes are everywhere: `sha256sum <hex>`, `commit <sha>` and `block hash <hex>` stay silent |
+| Amount | A number in a field named `amount`, `value`, `zats`, `zatoshis`, `zec`, `total`, `price`, `balance` or `amount_zec`, or text like `1.25 ZEC`, `0.5 TAZ`, `125000 zats`; or a decimal (not an integer) beside a checksum-verified address in the same object, whatever the field is called (`{ to: <address>, v: 0.42 }`). A sibling `currency` / `currency_code` that is not ZEC makes `price` or `total` a fiat amount, which is not reported. `price` with no currency field is still treated as an amount |
 | Memo | A non-empty string in a field named `memo`, `memo_text`, `note` or `message_memo`, or text like `memo="…"` |
 
 ## Where it looks
 
 URL path and query, every header except `Authorization`, `Cookie`, `Proxy-Authorization` and `X-Api-Key` (never inspected), and the body: JSON, form-encoded or plain text. Percent-encoded values are matched too.
+
+## Bodies that need decoding
+
+Each body is read in memory, at most 5 MB of it, without changing what the app sends:
+
+| Body | How it is read | Evidence path |
+|---|---|---|
+| string, `URLSearchParams`, `ArrayBuffer`, typed arrays | As text | `body.<field>` |
+| `Blob` / `File` | Read without consuming it | `body.<field>` |
+| `FormData` | Each string field; text files (text, JSON, form) up to the cap. Binary files are reported as uninspected | `body[form-data].<field>` |
+| `ReadableStream` | Teed: one branch is sent unchanged, the other is read alongside it | `body.<field>` |
+| `content-encoding: gzip`, `deflate`, `br` | Decompressed with `node:zlib`, output capped at 5 MB (decompression bombs are refused) | `body[gzip].<field>` |
+| gzip or zlib data without a header | Recognised by their verified header bytes (RFC 1952 / RFC 1950); Brotli has no reliable signature and needs the header | `body[gzip].<field>` |
+| Base64 or base64url values (Mixpanel-style `data=<base64>`) | Decoded only when the alphabet and padding are strict and the result is printable UTF-8; the encoded value is masked whole wherever it appears | `body.data[base64].<field>` |
+
+Anything that cannot be read (an unknown body type such as an async iterable, a body over 5 MB, malformed or unsupported compression, a binary body, an encrypted proxy tunnel) is recorded as **uninspected**, with what, why and where it was going. It appears under "Not inspected" in every output, never as clean, and fails the CI gate under [`strict: true`](policy.md).
 
 ## Masking
 

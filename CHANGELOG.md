@@ -4,12 +4,24 @@
 
 ### Added
 
+- **Never silent.** Traffic ZcashFlight sees but cannot read (unknown body types, bodies over 5 MB, malformed or unsupported compression, binary bodies, HTTPS proxy tunnels) is reported as uninspected in the CLI, reports, SARIF tool notifications and the dashboard. `strict: true` makes it fail the CI gate. The tested line lists only channels traffic actually went through; uninstrumented surfaces are listed in every report.
+- More channels: FormData, Blob, ReadableStream and Request bodies; gzip, deflate and brotli (declared, or gzip/zlib by header bytes, with decompression capped); base64/base64url values with the carrier masked whole; `process.stdout` / `stderr` and raw fd 1/2 writes; txids near a keyword in prose. The nine-route reference app (`test/fixtures/channels`) went from 3/9 found to 9/9.
+- Amounts beside a checksum-verified address are recognised whatever the field is called; a sibling non-ZEC currency makes `price` / `total` fiat.
+- The action takes a `policy` input; `.github/workflows/action-test.yml` exercises it as a consumer would.
+- Proxy mode tested with a Python app; plain-HTTP bodies go through the same bounded reader.
+- Validation corpus: 54/54 seeded exposures found, 0/26 false positives, 0 raw values stored.
+
 - ZIP 321 payment requests: `zcash:` URIs are parsed strictly against the ZIP (grammar, indices, amounts, base64url memos of at most 512 bytes, no memo for transparent addresses, unknown `req-` parameters rejected) and a leaked request is reported field by field: address, amount and memo. ZecShop's checkout now returns one, and its seeded analytics leak ships it.
 - A before/after proof on a real Zcash chain: ZecShop runs against Zallet and Zebra on a Z3 regtest network (`npm run regtest`, [guide](docs/guides/regtest.md)). Payments, sweeps and refunds are real transactions; the leaky build fails the gate and the fixed one passes.
 - `--policy <file>` for every command, and `timeout_ms` per scenario step.
 - Validation corpus: ZIP 321 leaks in analytics and logs, and look-alikes that must stay silent (a request to the approved wallet, shielding coinbase, a transparent payout the policy allows): 19/19 found, 0/8 false positives.
 
 ### Fixed
+
+- Events were sometimes credited to the next scenario when steps were fast; attribution now uses markers in the capture file (causal order).
+- A stale `dist/` in a checkout was run instead of the sources; the CLI now prefers the sources when they exist.
+- The sample's fix script writes files atomically, so an interrupted run can't leave them empty or corrupt.
+- Error details shown from the app's stderr are masked.
 
 - Detect every repeated query/form parameter; mask decoded URL and JSON log values, including percent escapes, form spaces, JSON escapes and alternate numeric spellings. Remove URL credentials and mask recognised identifiers in field metadata.
 - Inspect NDJSON imports as logs instead of trusting their content as pre-masked events. This changes saved-capture import semantics; use HAR for request imports.

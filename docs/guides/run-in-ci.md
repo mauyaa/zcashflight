@@ -6,7 +6,7 @@ type: how-to
 owner: maintainer
 status: published
 product_version: 0.1.0
-last_reviewed: 2026-10-18
+last_reviewed: 2026-10-21
 ---
 
 # Run ZcashFlight in CI
@@ -66,6 +66,7 @@ last_reviewed: 2026-10-18
 |---|---|
 | 0 | Run complete; nothing new at or above `--fail-on` |
 | 1 | At least one finding at or above `--fail-on` that isn't accepted in `zcashflight.baseline.json` |
+| 1 | With `strict: true` in the policy: traffic ZcashFlight saw but could not read |
 | 2 | Run incomplete or failed (app didn't start, scenario couldn't reach it, policy error) |
 
 ## If it fails for the wrong reason

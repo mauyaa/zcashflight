@@ -28,7 +28,9 @@ Starts the app from `app.start`, waits for `app.ready`, runs the scenarios, eval
 
 If `GITHUB_STEP_SUMMARY` is set, the Markdown report is appended to it.
 
-**Exit codes:** 0 complete (or, with `--ci`, nothing new at or above the threshold); 1 (`--ci` only) gating findings; 2 failed or incomplete run, or a policy error.
+**Exit codes:** 0 complete (or, with `--ci`, nothing new at or above the threshold); 1 (`--ci` only) gating findings, or uninspected traffic when the policy sets `strict: true`; 2 failed or incomplete run, or a policy error.
+
+**Coverage lines:** after the findings, `tested:` lists the scenarios and only the channels that traffic actually went through in this run (for example `Observed: fetch (5), console (1), process.stdout / stderr (1)`). `not tested:` first lists anything seen but not readable (`1 request body (async iterable) to analytics.example.com (a body type ZcashFlight cannot read)`), then hooked channels nothing went through, then surfaces ZcashFlight does not instrument at all (`node:http2`, WebSocket, raw sockets, undici used directly, worker threads, non-Node child processes), then your policy's `not_tested` notes.
 
 ## `zcashflight scan <file>…`
 

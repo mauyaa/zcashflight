@@ -27,6 +27,7 @@ ZcashFlight looks for `zcashflight.yml` (or `.yaml`) in the project folder. The 
 | `sinkhole` | boolean | `true` | Answer requests to non-local hosts locally during tests |
 | `scenarios` | list | `[]` | Flows to run (below) |
 | `not_tested` | list of strings | network metadata note | Printed in every report as "Not tested" |
+| `strict` | boolean | `false` | With `--ci`, traffic ZcashFlight saw but could not read (see [bodies that need decoding](detection.md#bodies-that-need-decoding)) fails the gate with exit 1. Without it, uninspected traffic is reported as a warning |
 
 **Data classes:** `addresses`, `amounts`, `memos`, `transaction IDs`, `viewing keys`, `spending keys`, `seed phrases`. Singular forms and `txid` are also accepted.
 

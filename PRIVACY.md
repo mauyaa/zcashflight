@@ -31,6 +31,7 @@ During a run, only the app ZcashFlight started, and only for the length of the r
 |---|---|
 | Outbound `fetch` / `http(s)` requests: method, URL, headers, body | Masked URL, header **names**, body **field names**, masked matches, byte count |
 | `console.*` output | Masked line (truncated to 400 characters), masked matches |
+| `process.stdout` / `stderr` writes and raw writes to file descriptors 1 and 2 | Same as console. The app's own output is passed through unchanged |
 | New lines in the log files listed in `logs:` | Same as console |
 | Wallet RPC send calls | Method, which pools are touched, `privacyPolicy` |
 | Stack frames inside your project | File, line, column, function name. Source is read in memory to choose the location, but source snippets are not stored in new runs |
@@ -72,4 +73,4 @@ Use synthetic data. `zcashflight synth` produces testnet identifiers with valid 
 
 ZcashFlight reports what it observed in your scenarios. Network-level metadata (IP address, TLS fingerprints, transport timing), mobile and browser clients, and code paths your scenarios don't exercise are outside what a run can see, and every report says so.
 
-Masking covers recognised Zcash identifiers and supported field context, not arbitrary credentials or personal information. The app's original console output and log files are not rewritten. Blob, FormData and streaming fetch bodies supplied directly in `init.body` are not currently decoded; the collector records an unreadable-body marker. Use a supported string, byte buffer, URLSearchParams or readable Request body for full body inspection. Historical run files and recorded assets are not retroactively scrubbed by these fixes. Use synthetic inputs and inspect artifacts before sharing.
+Masking covers recognised Zcash identifiers and supported field context, not arbitrary credentials or personal information. The app's original console output, stdout and log files are not rewritten. Request bodies of every common type are read in memory up to 5 MB (including Blob, FormData, streams, and gzip/deflate/br); anything that cannot be read is reported as uninspected, never as clean, and its raw bytes are not stored. Historical run files and recorded assets are not retroactively scrubbed by these fixes. Use synthetic inputs and inspect artifacts before sharing.

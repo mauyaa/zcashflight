@@ -6,7 +6,7 @@ type: how-to
 owner: maintainer
 status: published
 product_version: 0.1.0
-last_reviewed: 2026-10-18
+last_reviewed: 2026-10-21
 ---
 
 # Test a non-Node app
@@ -15,7 +15,16 @@ last_reviewed: 2026-10-18
 
 **Before you start:** your app's HTTP client honours the `HTTP_PROXY` and `HTTPS_PROXY` environment variables. Most do: Rust `reqwest`, Go `net/http`, Python `requests`, curl.
 
-**What the proxy can and cannot see:** plain HTTP requests are inspected in full (URL, headers, body). HTTPS requests are **not decrypted**. ZcashFlight records the destination host only, which is enough for rule D (third-party flows) but not for rules A–C. To inspect bodies, point the app at plain-HTTP test doubles of its services during the test, as ZecShop does with its mock wallet RPC.
+**What the proxy can and cannot see** (tested with a standard-library Python app, [`test/fixtures/proxy-python`](../../test/fixtures/proxy-python), on 21 Oct 2026):
+
+| Traffic | What ZcashFlight sees |
+|---|---|
+| Plain HTTP through the proxy | URL, headers and body (up to 5 MB, gzip/deflate/br decoded): full rules A–D. No code location, because there is no stack trace across processes |
+| HTTPS through the proxy (`CONNECT`) | The destination host only. The request is **not decrypted**, and it is reported under "Not inspected" as `HTTPS request (CONNECT tunnel) … encrypted; only the host is visible`, never as clean. Under `strict: true` it fails the gate. With the sinkhole on (the default), the tunnel to a third party is refused, so the app gets a connection error instead of a response |
+| Clients that ignore `HTTP_PROXY` / `HTTPS_PROXY`, or pin certificates | Nothing |
+| The app's own logs and stdout | Only the log files you list in `logs:` |
+
+To inspect HTTPS bodies, point the app at plain-HTTP test doubles of its services during the test, as ZecShop does with its mock wallet RPC. ZcashFlight does not install a certificate authority or intercept TLS.
 
 ## Steps (managed run)
 

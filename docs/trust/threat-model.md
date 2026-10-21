@@ -43,7 +43,18 @@ Following the OWASP threat-modelling structure: assets, actors, trust boundaries
 | Script injection in the dashboard from finding text | All finding text is escaped before insertion; CSP `default-src 'self'`, no `eval` | `ui/app.js` `esc()`; the CSP blocks eval (observed) |
 | Supply-chain compromise | Zero runtime dependencies | `package.json` has no `dependencies` |
 | The regtest harness pays orders or mines blocks in a real deployment | Its routes (`/regtest/pay`, `/regtest/mine`) exist only when `REGTEST_CUSTOMER_ADDRESS` is set, and only the regtest policy sets it. The `zebra`/`zebra` RPC credentials are Z3's fixed regtest defaults, valid only on that local network | `examples/zecshop/server.ts`; [regtest guide](../guides/regtest.md) |
+| A body ZcashFlight cannot read is mistaken for a clean one | Unknown body types, bodies over 5 MB, malformed or unsupported compression, binary bodies and encrypted proxy tunnels are recorded as uninspected and listed under "Not inspected" in every output (CLI, reports, SARIF tool notifications, dashboard); `strict: true` fails the CI gate on them | `test/channels.test.ts`, `test/proxy.test.ts` |
+| A decompression bomb exhausts memory | Compressed input and decompressed output are each capped at 5 MB (`maxOutputLength`); over-limit or malformed data is reported as uninspected | `test/channels.test.ts` |
+| A reversible encoding of a protected value is stored | A base64 value that decodes to protected data is masked whole (`[base64 carrying utest1…]`), wherever it appears | `test/channels.test.ts` asserts no raw or base64 form is stored |
 | Arbitrary command execution from a policy file | `app.start` runs a shell command, by design. Only run policies you trust, as with any `npm start` | Documented here and in the quickstart |
+
+## Trust boundary: the app's own output
+
+ZcashFlight inspects what the app writes to the console, `process.stdout` / `stderr`, file descriptors 1 and 2, and the log files you list, and stores only masked results. It does **not** rewrite or sanitise the app's own stdout, its log files, or anything a third-party logging sink receives: those keep whatever the app wrote. Use synthetic values, and treat the app's own output and CI logs as sensitive.
+
+## Not instrumented
+
+Traffic through these surfaces is not seen at all, and every live report lists them under "Not tested": `node:http2`, WebSocket, raw TCP/TLS/UDP sockets (`node:net`, `node:tls`, `node:dgram`), undici used directly (not through global `fetch`), worker threads, and child processes that are not Node. Node child processes are covered when they inherit `NODE_OPTIONS` (the default; observed with `npm start` spawning `node`).
 
 ## Not defended against
 
