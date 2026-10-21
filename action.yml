@@ -15,6 +15,9 @@ inputs:
   sarif:
     description: Where to write SARIF for GitHub code scanning (empty to skip)
     default: zcashflight.sarif
+  policy:
+    description: Policy file to use instead of <dir>/zcashflight.yml (empty for the default)
+    default: ''
 
 runs:
   using: composite
@@ -28,4 +31,5 @@ runs:
         node "${{ github.action_path }}/bin/zcashflight.js" run --ci \
           --dir "${{ inputs.dir }}" \
           --fail-on "${{ inputs.fail-on }}" \
+          ${{ inputs.policy && format('--policy "{0}"', inputs.policy) || '' }} \
           ${{ inputs.sarif && format('--sarif "{0}"', inputs.sarif) || '' }}

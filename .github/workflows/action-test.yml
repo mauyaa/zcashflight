@@ -1,0 +1,38 @@
+name: action
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+# Uses this repository's action.yml exactly as a consuming repository would (uses: ./), and checks that it
+# fails when it should and passes when it should.
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Leaky sample must fail the check
+        id: leaky
+        uses: ./
+        continue-on-error: true
+        with: { dir: examples/zecshop, sarif: leaky.sarif }
+      - name: Expect failure, with findings in SARIF
+        run: |
+          test "${{ steps.leaky.outcome }}" = failure
+          node -e "const r=JSON.parse(require('fs').readFileSync('leaky.sarif','utf8')).runs[0].results; if(r.length<5) process.exit(1); console.log(r.length+' SARIF results')"
+
+      - run: node examples/zecshop/scripts/fixes.ts apply
+      - name: Fixed sample must pass the check
+        uses: ./
+        with: { dir: examples/zecshop, sarif: fixed.sarif }
+
+      - name: Unreadable bodies only warn by default
+        uses: ./
+        with: { dir: test/fixtures/channels, policy: test/fixtures/channels/zcashflight.uninspected.yml, sarif: '' }
+      - name: strict true makes them fail the check
+        id: strict
+        uses: ./
+        continue-on-error: true
+        with: { dir: test/fixtures/channels, policy: test/fixtures/channels/zcashflight.strict.yml, sarif: '' }
+      - run: test "${{ steps.strict.outcome }}" = failure
