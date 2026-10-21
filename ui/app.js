@@ -132,8 +132,12 @@
   var R={
     0:function(){
       return '<h1>Privacy should be '+U.replace('{w}','verified,')+' not merely promised.</h1>'+
-      '<p class="sub">Privacy tests for Zcash apps. Catch exposed addresses, amounts, and memos before shipping.</p>'+
-      '<div class="row"><button class="btn primary" data-go="1">See it work <span>→</span></button>'+(CFG.docs?'<a class="link q" href="'+esc(CFG.docs)+'" target="_blank" rel="noreferrer noopener">Get started ↗</a>':'')+'</div>'},
+      '<p class="sub">A CLI and GitHub Action that runs your Zcash app\'s real flows and catches leaked addresses, amounts and memos. For payment backends, bots, explorers and web front ends.</p>'+
+      '<div class="row"><button class="btn primary" data-go="1">See it work <span>→</span></button>'+(CFG.docs?'<a class="link q" href="'+esc(CFG.docs)+'" target="_blank" rel="noreferrer noopener">Get started ↗</a>':'')+'</div>'+
+      // the hosted page is a recorded replay: say so, and give the one command that runs the real thing
+      (LIVE?'':'<div class="try"><div class="try-head"><span>Try it on your machine</span><button class="link q" data-act="copytry">Copy</button></div>'+
+        '<code class="try-cmd">git clone https://github.com/mauyaa/zcashflight\ncd zcashflight &amp;&amp; npm run demo</code>'+
+        '<p class="small muted">This page replays a recorded run of the sample app. It doesn\'t scan anything.</p></div>')},
     1:function(){
       var P=D&&D.policy, prot=P?P.protect:[];
       if(S.app==='policy'){
@@ -194,8 +198,10 @@
         '<div class="row"><button class="btn primary" data-act="'+(sample?'apply':'rerun')+'">'+(sample?'Apply the '+word(F.length)+' fix'+(F.length===1?'':'es')+' and re-run':'Run the same tests again')+'</button></div>'+
         
         (S.fixMsg?'<p class="error" role="alert">'+esc(S.fixMsg)+'</p>':'');
+      // the same title more than once: say which scenario each came from, so rows can be told apart
+      var dup={};F.forEach(function(f){dup[f.title]=(dup[f.title]||0)+1});
       return eyebrow(3)+head+'<div class="list">'+F.map(function(f,k){var tw=split(f.title),c=closed[f.id];
-        return '<button class="item'+(c?' closed':'')+'" data-leak="'+k+'"><span class="n">'+String(k+1).padStart(2,'0')+'</span><span><span class="t">'+esc(tw[0])+'</span> <span class="w">'+esc(tw[1])+'</span></span>'+sevTag(f,c)+'</button>'}).join('')+'</div>'+cta;
+        return '<button class="item'+(c?' closed':'')+'" data-leak="'+k+'"><span class="n">'+String(k+1).padStart(2,'0')+'</span><span><span class="t">'+esc(tw[0])+'</span> <span class="w">'+esc(tw[1])+'</span>'+(dup[f.title]>1?' <span class="w">· '+esc(f.scenario)+'</span>':'')+'</span>'+sevTag(f,c)+'</button>'}).join('')+'</div>'+cta;
     },
     4:function(){
       var run=S.after||S.run;
@@ -217,8 +223,10 @@
       if(!c||!S.after)return eyebrow(4)+'<h2>'+U.replace('{w}','No leaks')+' detected.</h2><p class="sub">'+esc(cap(scenarioList()))+' ran with no detected leaks across the covered flows.</p><div class="row"><button class="btn primary" data-act="report">View the report</button><button class="link q" data-go="5">Skip</button></div>';
       if(c.verdict==='clean')return eyebrow(4)+'<h2>'+(c.closed.length===1?U.replace('{w}','The leak is')+' closed.':U.replace('{w}','All '+word(c.closed.length))+' leaks closed.')+'</h2><p class="sub">The same '+word(run.scenarios.length)+' scenario'+(run.scenarios.length===1?'':'s')+' ran again: '+pl(run.stats.requests,'request')+', no detected leaks across the covered flows.</p>'+
         '<div class="row"><button class="btn primary" data-act="report">View the report</button><button class="link q" data-go="5">Skip</button></div>';
-      return eyebrow(4)+'<h2>'+(c.added.length?word(c.added.length,true)+' new leak'+(c.added.length>1?'s':'')+'.':word(c.closed.length,true)+' closed, '+word(c.open.length)+' still open.')+'</h2>'+
-        '<p class="sub">'+(c.added.length?'The re-run found something the last run didn\'t.':'Progress. The rest are waiting with their evidence.')+'</p>'+
+      // nothing closed is not progress: say plainly that the same leaks are still there
+      var none=!c.added.length&&!c.closed.length;
+      return eyebrow(4)+'<h2>'+(c.added.length?word(c.added.length,true)+' new leak'+(c.added.length>1?'s':'')+'.':none?'Nothing closed yet.':word(c.closed.length,true)+' closed, '+word(c.open.length)+' still open.')+'</h2>'+
+        '<p class="sub">'+(c.added.length?'The re-run found something the last run didn\'t.':none?'The same '+word(c.open.length)+' leak'+(c.open.length>1?'s are':' is')+' still open after the re-run. Fix the code, then run the same tests again.':'Progress. The rest are waiting with their evidence.')+'</p>'+
         '<div class="row"><button class="btn primary" data-act="continue">Back to the leaks</button><button class="link q" data-act="report">View the report</button></div>';
     },
     5:function(){
@@ -526,6 +534,7 @@
       case 'seeit':S.home='alertDetail';S.homePinned=true;render(5);break;
       case 'quiet':S.home='quiet';S.homePinned=true;render(5);paint(cur,0);break;
       case 'restart':var tt=document.getElementById('toast');if(tt){tt.classList.remove('on');tt.hidden=true}go(0);break;
+      case 'copytry':try{navigator.clipboard.writeText('git clone https://github.com/mauyaa/zcashflight\ncd zcashflight && npm run demo').then(function(){a.textContent='Copied';setTimeout(function(){a.textContent='Copy'},2000)},function(){})}catch(x){}break;
       case 'copy':try{navigator.clipboard.writeText('zcashflight run --ci');a.textContent='Copied';setTimeout(function(){a.textContent='Copy the command'},2000)}catch(x){}break;
     }
   });

@@ -311,3 +311,19 @@ h3{font-weight:500;font-size:clamp(1.7rem,min(3vw,5vh),2.3rem);line-height:1.05;
 /* evidence and commands wrap long lines (URLs, keys) instead of scrolling sideways */
 .ev,.term{white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:visible}
 .ev .secret{white-space:nowrap}
+
+/* hero: try it on your machine (hosted replay only) */
+.try{display:flex;flex-direction:column;gap:6px;max-width:440px}
+.try-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.try-head .link{text-transform:none;letter-spacing:0;font-size:12.5px}
+.try-cmd{display:block;font-family:var(--mono);font-size:12.5px;line-height:1.75;color:var(--ink);border-left:1.5px solid var(--line);padding-left:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.try .small{font-size:12.5px;line-height:1.5}
+@media (max-width:820px){.try-cmd{font-size:11.5px}.try .small{display:none}}
+/* tap targets: secondary links get 26px so sub-pixel layout never dips below WCAG's 24px */
+.row .link,.row.nav .link,.footer .link,.try-head .link{min-height:26px;display:inline-flex;align-items:center}
+/* the promise: a wider subtitle and a tighter try block keep it on one screen */
+.st[data-name="start"] .sub{max-width:44ch}
+.try{gap:4px}
+.try-cmd{line-height:1.6}
+.downloads a{min-height:26px;display:inline-flex;align-items:center}
+@media (max-width:820px){.st[data-name="start"] .swap{gap:12px}}

@@ -85,12 +85,16 @@ Moment content fades in over 450 ms. The walk takes 900–1500 ms. Circles close
 
 The layout audit [`test/ui-audit.js`](../../test/ui-audit.js) walks 18 screens in recorded mode: the promise, choose app, policy, listening, leaks list, two leak details, all closed, report, every day, new leak and its detail, first visit, app didn't start, heard nothing, stopped, folder not found, and the Recorded popover. On each screen it checks for sideways scrolling, overflow without a cue, text running under the footer, and any interactive target under 24 × 24 px (WCAG 2.2 AA, 2.5.8).
 
-| Viewport | Result (2026-10-19) |
+| Viewport | Result (2026-10-21) |
 |---|---|
 | 320 × 640 | 18 / 18 |
+| 360 × 740 | 18 / 18 |
+| 375 × 812 | 18 / 18 |
 | 390 × 844 | 18 / 18 |
+| 412 × 915 | 18 / 18 |
 | 768 × 1024 | 18 / 18 |
 | 1024 × 768 | 18 / 18 |
+| 1280 × 693 | 18 / 18 |
 | 1366 × 768 | 18 / 18 |
 | 1440 × 900 | 18 / 18 |
 | 1920 × 1080 | 18 / 18 |
